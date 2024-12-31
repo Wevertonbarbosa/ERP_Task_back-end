@@ -45,7 +45,7 @@ public class Tarefa {
     private Usuario responsavel;
 
     @OneToMany(mappedBy = "tarefa", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TarefaData> datas;
+    private List<TarefaCheckData> datas;
 
     @Column(name = "dias_semana") // Limite de caracteres para evitar problemas
     private String diasSemana;

@@ -6,20 +6,18 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Entity
-@Table(name = "tbl_tarefas_data")
+@Table(name = "tbl_tarefas_check_data")
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
 @Data
-public class TarefaData {
+public class TarefaCheckData {
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_tarefas_data")
-    @SequenceGenerator(name = "seq_tarefas_data", sequenceName = "SEQ_TAREFAS_DATA", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_tarefas_check_data")
+    @SequenceGenerator(name = "seq_tarefas_check_data", sequenceName = "SEQ_TAREFAS_CHECK_DATA", allocationSize = 1)
     private Long id;
 
     private boolean concluida = false;
