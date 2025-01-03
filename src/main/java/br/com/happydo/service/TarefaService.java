@@ -95,9 +95,11 @@ public class TarefaService {
     public TarefaDTO atualizarTarefa(Long adminId, Long tarefaId, TarefaDTO tarefaDTO) {
         Usuario admin = usuarioRepository.findById(adminId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+
         if (!admin.getRole().equals(UsuarioRole.ADMIN)) {
             throw new AcessoNegadoException("Apenas usuários ADMIN podem atualizar tarefas.");
         }
+
         Optional<Tarefa> tarefaOptional = tarefaRepository.findById(tarefaId);
         if (tarefaOptional.isPresent()) {
             Tarefa tarefa = tarefaOptional.get();

@@ -25,6 +25,15 @@ public class TarefaCheckDataController {
         return ResponseEntity.ok(tarefaDataConfirmando);
     }
 
+    //USUARIO SINALIZA NOVAMENTE TAREFA CONCLUIDA
+    @PutMapping("/{checkId}/atualiza-sinalizar/{usuarioId}")
+    public ResponseEntity<String> sinalizarConclusaoNovamenteTarefa(
+            @PathVariable Long checkId,
+            @PathVariable Long usuarioId) {
+        tarefaCheckDataService.atualizarSinalizarConclusaoTarefa(checkId, usuarioId);
+        return ResponseEntity.ok("Tarefa sinalizada como concluida novamente!");
+    }
+
     //ADMIN CONFIRMANDO A CONCLUSAO DA TAREFA
     @PutMapping("/{checkId}/confirmar/{adminId}/{aceitaConclusao}")
     public ResponseEntity<String> concluirTarefas(
@@ -36,11 +45,11 @@ public class TarefaCheckDataController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{tarefaId}/{adminId}")
+    @DeleteMapping("/{checkId}/{adminId}")
     public ResponseEntity<Void> deleteConfirmacao(
-            @PathVariable Long tarefaId,
+            @PathVariable Long checkId,
             @PathVariable Long adminId) {
-        tarefaCheckDataService.deletarConfirmacaoTarefa(adminId, tarefaId);
+        tarefaCheckDataService.deletarConfirmacaoTarefa(adminId, checkId);
         return ResponseEntity.noContent().build();
     }
 }
