@@ -43,6 +43,7 @@ public class TarefaService {
         BeanUtils.copyProperties(tarefaDTO, tarefa);
         tarefa.setCriador(criador); // Associar o criador
         tarefa.setResponsavel(responsavel); // Associar o responsavel
+        tarefa.setStatus(StatusTarefa.ANDAMENTO);
 
         if (tarefaDTO.frequencia() != null && tarefaDTO.frequencia().equals(FrequenciaTarefa.SEMANAL)) {
             // Validação dos dias da semana

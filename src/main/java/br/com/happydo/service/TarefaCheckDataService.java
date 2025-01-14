@@ -5,10 +5,7 @@ import br.com.happydo.exception.AcessoNegadoException;
 import br.com.happydo.exception.TarefaJaSinalizada;
 import br.com.happydo.exception.TarefaNaoEncontradaException;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
-import br.com.happydo.model.Tarefa;
-import br.com.happydo.model.TarefaCheckData;
-import br.com.happydo.model.Usuario;
-import br.com.happydo.model.UsuarioRole;
+import br.com.happydo.model.*;
 import br.com.happydo.repository.TarefaCheckDataRepository;
 import br.com.happydo.repository.TarefaRepository;
 import br.com.happydo.repository.UsuarioRepository;
@@ -75,7 +72,7 @@ public class TarefaCheckDataService {
                     "sinalização da conclusão da tarefa.");
         }
 
-        if(tarefaCheckData.isSinalizadaUsuario()){
+        if (tarefaCheckData.isSinalizadaUsuario()) {
             throw new TarefaJaSinalizada("Tarefa já está sinalizada como concluída!");
         }
 
@@ -108,11 +105,14 @@ public class TarefaCheckDataService {
         if (aceitaConclusao) {
             tarefaCheckData.setSinalizadaUsuario(true);
             tarefaCheckData.setConcluida(true);
+            tarefaCheckData.getTarefa().setStatus(StatusTarefa.CONCLUIDO);
         } else {
             tarefaCheckData.setSinalizadaUsuario(false);
             tarefaCheckData.setConcluida(false);
+            tarefaCheckData.getTarefa().setStatus(StatusTarefa.ANDAMENTO);
         }
 
+        tarefaRepository.save(tarefaCheckData.getTarefa());
         tarefaCheckDataRepository.save(tarefaCheckData);
     }
 

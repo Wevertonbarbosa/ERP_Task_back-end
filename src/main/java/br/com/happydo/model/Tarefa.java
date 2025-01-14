@@ -31,6 +31,11 @@ public class Tarefa {
 
     @Enumerated(EnumType.STRING)
     private FrequenciaTarefa frequencia;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusTarefa status;
+
     @Column(name = "data_inicio")
     private LocalDate dataInicio;
     @Column(name = "data_fim")
@@ -49,6 +54,7 @@ public class Tarefa {
 
     @Column(name = "dias_semana") // Limite de caracteres para evitar problemas
     private String diasSemana;
+
 
     public List<String> getDiasSemanaList() {
         if (diasSemana != null) {

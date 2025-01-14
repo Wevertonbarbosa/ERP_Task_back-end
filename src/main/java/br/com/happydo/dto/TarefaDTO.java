@@ -1,6 +1,7 @@
 package br.com.happydo.dto;
 
 import br.com.happydo.model.FrequenciaTarefa;
+import br.com.happydo.model.StatusTarefa;
 import br.com.happydo.model.Tarefa;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -24,6 +25,9 @@ public record TarefaDTO(
         @NotNull(message = "A Frequência da tarefa é obrigatória!")
         FrequenciaTarefa frequencia,
 
+        @NotNull(message = "O Status da tarefa é obrigatória para atualizar a tarefa!")
+        StatusTarefa status,
+
         LocalDate dataInicio,
         LocalDate dataFim,
 
@@ -42,6 +46,7 @@ public record TarefaDTO(
                 tarefa.getDescricao(),
                 tarefa.getCategoria(),
                 tarefa.getFrequencia(),
+                tarefa.getStatus(),
                 tarefa.getDataInicio(),
                 tarefa.getDataFim(),
                 tarefa.getDiasSemanaList(),
