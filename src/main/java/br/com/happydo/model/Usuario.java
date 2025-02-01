@@ -27,4 +27,12 @@ public class Usuario {
 
     @Enumerated(EnumType.STRING)
     private UsuarioRole role;
+
+    @Column(name = "tarefas_concluidas")
+    private Integer tarefasConcluidas = 0;
+
+    @Column(name = "tarefas_pendentes")
+    private Integer tarefasPendentes = 0;
+
+
 }

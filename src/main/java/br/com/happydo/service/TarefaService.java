@@ -45,6 +45,9 @@ public class TarefaService {
         tarefa.setResponsavel(responsavel); // Associar o responsavel
         tarefa.setStatus(StatusTarefa.ANDAMENTO);
 
+        responsavel.setTarefasPendentes(responsavel.getTarefasPendentes() + 1);
+        usuarioRepository.save(responsavel);
+
         if (tarefaDTO.frequencia() != null && tarefaDTO.frequencia().equals(FrequenciaTarefa.SEMANAL)) {
             // Validação dos dias da semana
             List<String> diasValidos = Arrays.asList("segunda", "terça", "quarta", "quinta", "sexta", "sabado", "domingo");
