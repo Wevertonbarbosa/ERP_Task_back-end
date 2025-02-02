@@ -2,6 +2,7 @@ package br.com.happydo.controller;
 
 import br.com.happydo.dto.UsuarioCadastroDTO;
 import br.com.happydo.dto.UsuarioExibitionDTO;
+import br.com.happydo.dto.UsuarioTarefasExibitionDTO;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
 import br.com.happydo.service.UsuarioService;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,7 +22,6 @@ public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
-
 
 
     // Criar usuario
@@ -52,6 +52,13 @@ public class UsuarioController {
         List<UsuarioExibitionDTO> usuarios = usuarioService.listarTodosUsuarios();
         return new ResponseEntity<>(usuarios, HttpStatus.OK);
     }
+    //listar as tarefas pendentes e concluidas do usuario
+    @GetMapping("/{usuarioId}/tarefas")
+    public ResponseEntity<UsuarioTarefasExibitionDTO> getTarefasUsuarioStatus(@PathVariable Long usuarioId) {
+        UsuarioTarefasExibitionDTO tarefas = usuarioService.tarefasStatus(usuarioId);
+        return ResponseEntity.ok(tarefas);
+    }
+
 
     //Atualiza os Usuarios
     @PutMapping("/{id}")

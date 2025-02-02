@@ -2,6 +2,7 @@ package br.com.happydo.service;
 
 import br.com.happydo.dto.UsuarioCadastroDTO;
 import br.com.happydo.dto.UsuarioExibitionDTO;
+import br.com.happydo.dto.UsuarioTarefasExibitionDTO;
 import br.com.happydo.exception.ConflitoEmailException;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
 import br.com.happydo.model.Usuario;
@@ -56,6 +57,19 @@ public class UsuarioService {
                 .toList();
     }
 
+    public UsuarioTarefasExibitionDTO tarefasStatus(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
+
+        // Garantindo que os valores não sejam nulos
+        Integer concluidas = (usuario.getTarefasConcluidas() != null) ? usuario.getTarefasConcluidas() : 0;
+        Integer pendentes = (usuario.getTarefasPendentes() != null) ? usuario.getTarefasPendentes() : 0;
+
+        return new UsuarioTarefasExibitionDTO(concluidas, pendentes);
+
+    }
+
+
     // Deletar usuário com validação
     public void deleteUsuario(Long id) {
         if (!usuarioRepository.existsById(id)) {
@@ -77,11 +91,6 @@ public class UsuarioService {
             throw new UsuarioNaoEncontradoException("Usuário não encontrado.");
         }
     }
-
-
-
-
-
 
 
 }

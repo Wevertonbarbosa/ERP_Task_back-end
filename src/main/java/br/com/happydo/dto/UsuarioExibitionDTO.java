@@ -8,7 +8,8 @@ public record UsuarioExibitionDTO(
         String nome,
         String email,
         UsuarioRole role,
-        Integer tarefasConcluidas
+        Integer tarefasConcluidas,
+        Integer tarefasPendentes
 ) {
     public UsuarioExibitionDTO(Usuario usuario) {
         this(
@@ -16,6 +17,8 @@ public record UsuarioExibitionDTO(
                 usuario.getNome(),
                 usuario.getEmail(),
                 usuario.getRole(),
-                usuario.getTarefasConcluidas());
+                usuario.getTarefasConcluidas(),
+                usuario.getTarefasPendentes()
+        );
     }
 }
