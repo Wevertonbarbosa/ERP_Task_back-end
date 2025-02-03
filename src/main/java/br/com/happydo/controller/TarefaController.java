@@ -16,15 +16,6 @@ public class TarefaController {
     @Autowired
     private TarefaService tarefaService;
 
-    /**
-     * Endpoint para criar uma nova tarefa.
-     *
-     * @param criadorId    ID do usuário criador (ADMIN).
-     * @param responsavelId ID do usuário responsável (USER).
-     * @param tarefaDTO    Objeto com os dados da tarefa.
-     * @return Tarefa criada.
-     */
-
     @PostMapping("/{criadorId}/{responsavelId}")
     public ResponseEntity<TarefaDTO> criarTarefa(
             @PathVariable Long criadorId,
@@ -34,12 +25,6 @@ public class TarefaController {
         return ResponseEntity.ok(novaTarefa);
     }
 
-    /**
-     * Endpoint para listar as tarefas do usuário logado.
-     *
-     * @param usuarioId ID do usuário logado.
-     * @return Lista de tarefas.
-     */
     @GetMapping("/{usuarioId}")
     public ResponseEntity<List<TarefaDTO>> listarTarefas(@PathVariable Long usuarioId) {
         List<TarefaDTO> tarefas = tarefaService.listarTarefas(usuarioId);
