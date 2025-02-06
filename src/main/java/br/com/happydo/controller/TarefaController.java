@@ -31,6 +31,12 @@ public class TarefaController {
         return ResponseEntity.ok(tarefas);
     }
 
+    @GetMapping("mentorado/{usuarioId}")
+    public ResponseEntity<List<TarefaDTO>> listarTarefasMentorados(@PathVariable Long usuarioId) {
+        List<TarefaDTO> tarefas = tarefaService.listarTarefasMentorados(usuarioId);
+        return ResponseEntity.ok(tarefas);
+    }
+
 
     @PutMapping("/{tarefaId}/{adminId}")
     public ResponseEntity<TarefaDTO> atualizarTarefa(

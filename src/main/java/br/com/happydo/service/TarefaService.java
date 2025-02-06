@@ -79,20 +79,28 @@ public class TarefaService {
         Usuario usuarioLogado = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
-        if (usuarioLogado.getRole().equals(UsuarioRole.USER)) {
-            // Usuário mentorado: retorna apenas as tarefas delegadas a ele
-            return tarefaRepository.findByResponsavel_UsuarioId(usuarioId).stream()
-                    .map(TarefaDTO::new)
-                    .toList();
 
-        } else if (usuarioLogado.getRole().equals(UsuarioRole.ADMIN)) {
-            // Usuário mentor (ADMIN): retorna suas tarefas e as tarefas delegadas
-            return tarefaRepository.findByCriador_UsuarioIdOrResponsavel_UsuarioId(usuarioId, usuarioId).stream()
+        // Usuário mentorado: retorna apenas as tarefas delegadas a ele
+        return tarefaRepository.findByResponsavel_UsuarioId(usuarioId).stream()
+                .map(TarefaDTO::new)
+                .toList();
+
+    }
+
+    public List<TarefaDTO> listarTarefasMentorados(Long usuarioId) {
+        Usuario usuarioLogado = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+
+        if (usuarioLogado.getRole().equals(UsuarioRole.ADMIN)) {
+            // Buscar tarefas criadas pelo admin, mas com outro responsável
+            return tarefaRepository.findByCriador_UsuarioIdAndResponsavel_UsuarioIdNot(usuarioId, usuarioId)
+                    .stream()
                     .map(TarefaDTO::new)
                     .toList();
         } else {
             throw new AcessoNegadoException("Perfil de usuário não autorizado.");
         }
+
     }
 
 
@@ -151,6 +159,16 @@ public class TarefaService {
 
         Tarefa tarefa = tarefaRepository.findById(tarefaId)
                 .orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
+
+        Usuario usuarioResponsavel = tarefa.getResponsavel();
+
+        if (tarefa.getStatus().toString().equals("ANDAMENTO")) {
+            usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() - 1);
+        } else {
+            usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1);
+        }
+        usuarioRepository.save(usuarioResponsavel);
+
 
         tarefaRepository.delete(tarefa);
     }
