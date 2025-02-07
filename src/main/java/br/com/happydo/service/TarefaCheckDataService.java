@@ -1,6 +1,8 @@
 package br.com.happydo.service;
 
 import br.com.happydo.dto.TarefaCheckDataDTO;
+import br.com.happydo.dto.TarefaSinalizadaConcluidaDTO;
+import br.com.happydo.dto.UsuarioExibitionDTO;
 import br.com.happydo.exception.AcessoNegadoException;
 import br.com.happydo.exception.TarefaJaSinalizada;
 import br.com.happydo.exception.TarefaNaoEncontradaException;
@@ -12,6 +14,8 @@ import br.com.happydo.repository.UsuarioRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class TarefaCheckDataService {
@@ -25,9 +29,18 @@ public class TarefaCheckDataService {
     @Autowired
     private TarefaRepository tarefaRepository;
 
+    public List<TarefaSinalizadaConcluidaDTO> tarefaSinalizada(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
-    //TODO POSSIVEL VALIDACAO DE NAO PERMITIR A CONFIRMACAO DA MESMA TAREFA ID DUAS VEZES
-    // TALVEZ NO FRONT EU CONSIGA NAO PERMITIR ISSO!
+        List<TarefaCheckData> tarefasSinalizadas = tarefaCheckDataRepository.findTarefasSinalizadasPorUsuario(usuarioId);
+
+        return tarefasSinalizadas.stream()
+                .map(TarefaSinalizadaConcluidaDTO::new)
+                .toList();
+    }
+
+
     public TarefaCheckDataDTO UsuarioSinalizarConclusaoTarefa(Long tarefaId, Long usuarioId, TarefaCheckDataDTO tarefaCheckDataDTO) {
 
         Usuario usuario = usuarioRepository.findById(usuarioId)

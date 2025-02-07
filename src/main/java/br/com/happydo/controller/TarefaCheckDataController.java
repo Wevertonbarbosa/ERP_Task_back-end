@@ -1,10 +1,13 @@
 package br.com.happydo.controller;
 
 import br.com.happydo.dto.TarefaCheckDataDTO;
+import br.com.happydo.dto.TarefaSinalizadaConcluidaDTO;
 import br.com.happydo.service.TarefaCheckDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/tarefas-data")
@@ -13,6 +16,12 @@ public class TarefaCheckDataController {
     @Autowired
     private TarefaCheckDataService tarefaCheckDataService;
 
+
+    @GetMapping("/tarefa-sinalizada/{usuarioId}")
+    public ResponseEntity<List<TarefaSinalizadaConcluidaDTO>> listarTarefasSinalizadas(@PathVariable Long usuarioId) {
+        List<TarefaSinalizadaConcluidaDTO> tarefas = tarefaCheckDataService.tarefaSinalizada(usuarioId);
+        return ResponseEntity.ok(tarefas);
+    }
 
     //USUARIO SINALIZANDO A CONCLUSAO DA TAREFA
     @PostMapping("/{tarefaId}/sinalizar/{usuarioId}")
