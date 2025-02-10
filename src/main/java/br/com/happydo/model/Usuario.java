@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Table(name = "tbl_usuarios")
@@ -33,6 +36,18 @@ public class Usuario {
 
     @Column(name = "tarefas_pendentes")
     private Integer tarefasPendentes = 0;
+
+
+
+    @OneToMany(mappedBy = "criador")
+    private List<Tarefa> tarefasCriadas;
+
+    @ManyToOne
+    @JoinColumn(name = "admin_responsavel_id")
+    private Usuario adminResponsavel;
+
+    @OneToMany(mappedBy = "adminResponsavel")
+    private List<Usuario> mentorados = new ArrayList<>();
 
 
 }
