@@ -3,7 +3,6 @@ package br.com.happydo.service;
 import br.com.happydo.dto.UsuarioCadastroDTO;
 import br.com.happydo.dto.UsuarioExibitionDTO;
 import br.com.happydo.dto.UsuarioTarefasExibitionDTO;
-import br.com.happydo.exception.AcessoNegadoException;
 import br.com.happydo.exception.ConflitoEmailException;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
 import br.com.happydo.model.Usuario;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 @Service
 public class UsuarioService {
@@ -25,8 +24,6 @@ public class UsuarioService {
 
     @Autowired
     private EmailUsuarioService emailUsuarioService;
-
-
 
 
     public List<UsuarioExibitionDTO> listarMentorados(Long adminId) {
