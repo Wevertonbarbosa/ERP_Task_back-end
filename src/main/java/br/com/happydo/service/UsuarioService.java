@@ -5,8 +5,11 @@ import br.com.happydo.dto.UsuarioExibitionDTO;
 import br.com.happydo.dto.UsuarioTarefasExibitionDTO;
 import br.com.happydo.exception.ConflitoEmailException;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
+import br.com.happydo.exception.UsuarioNaoPodeSerExcluidoException;
+import br.com.happydo.model.Tarefa;
 import br.com.happydo.model.Usuario;
 import br.com.happydo.model.UsuarioRole;
+import br.com.happydo.repository.TarefaRepository;
 import br.com.happydo.repository.UsuarioRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,9 @@ public class UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private TarefaRepository tarefaRepository;
 
     @Autowired
     private EmailUsuarioService emailUsuarioService;
@@ -94,18 +100,34 @@ public class UsuarioService {
         if (!usuarioRepository.existsById(id)) {
             throw new UsuarioNaoEncontradoException("Usuário com ID " + id + " não encontrado.");
         }
+
+        List<Tarefa> tarefas = tarefaRepository.findByResponsavel_UsuarioId(id);
+
+        if (!tarefas.isEmpty()) {
+            throw new UsuarioNaoPodeSerExcluidoException("Usuário não pode ser excluído porque possui tarefas ativas.");
+        }
+
+
         usuarioRepository.deleteById(id);
     }
 
     // Atualizar usuário
     public UsuarioExibitionDTO atualizarUsuario(Long id, UsuarioCadastroDTO usuarioCadastroDTO) {
-        Usuario usuario = new Usuario();
-        BeanUtils.copyProperties(usuarioCadastroDTO, usuario);
         Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
 
         if (usuarioOptional.isPresent()) {
-            usuario.setUsuarioId(id);
-            return new UsuarioExibitionDTO(usuarioRepository.save(usuario));
+            Usuario usuarioExistente = usuarioOptional.get();
+
+            // Mantém o admin responsável existente
+            Usuario adminResponsavel = usuarioExistente.getAdminResponsavel();
+
+            // Atualiza os dados do usuário (mas mantém o adminResponsavel)
+            BeanUtils.copyProperties(usuarioCadastroDTO, usuarioExistente, "usuarioId", "adminResponsavel");
+
+            usuarioExistente.setUsuarioId(id);
+            usuarioExistente.setAdminResponsavel(adminResponsavel); // Garante que o vínculo com o admin continua
+
+            return new UsuarioExibitionDTO(usuarioRepository.save(usuarioExistente));
         } else {
             throw new UsuarioNaoEncontradoException("Usuário não encontrado.");
         }

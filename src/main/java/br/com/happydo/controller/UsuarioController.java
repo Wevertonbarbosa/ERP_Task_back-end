@@ -4,7 +4,6 @@ import br.com.happydo.dto.UsuarioCadastroDTO;
 import br.com.happydo.dto.UsuarioExibitionDTO;
 import br.com.happydo.dto.UsuarioTarefasExibitionDTO;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
-import br.com.happydo.model.Usuario;
 import br.com.happydo.service.UsuarioService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
