@@ -66,6 +66,8 @@ public class Tarefa {
     public void setDiasSemanaList(List<String> dias) {
         if (dias != null && !dias.isEmpty()) {
             this.diasSemana = String.join(",", dias);
+        }else {
+            this.diasSemana = null; // Limpa o campo no banco de dados
         }
     }
 

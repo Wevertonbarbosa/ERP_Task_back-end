@@ -10,6 +10,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -138,7 +139,7 @@ public class TarefaService {
                 }
                 tarefa.setDiasSemanaList(tarefaDTO.diasSemana());
             } else {
-                tarefa.setDiasSemanaList(null);
+                tarefa.setDiasSemanaList(new ArrayList<>());
             }
 
             return new TarefaDTO(tarefaRepository.save(tarefa));
