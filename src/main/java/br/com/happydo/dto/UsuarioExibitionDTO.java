@@ -9,16 +9,25 @@ public record UsuarioExibitionDTO(
         String email,
         UsuarioRole role,
         Integer tarefasConcluidas,
-        Integer tarefasPendentes
+        Integer tarefasPendentes,
+        Double saldoTotal
+
 ) {
-    public UsuarioExibitionDTO(Usuario usuario) {
+    public UsuarioExibitionDTO(Usuario usuario, Double saldoTotal) {
         this(
                 usuario.getUsuarioId(),
                 usuario.getNome(),
                 usuario.getEmail(),
                 usuario.getRole(),
                 usuario.getTarefasConcluidas(),
-                usuario.getTarefasPendentes()
+                usuario.getTarefasPendentes(),
+                saldoTotal
         );
     }
+
+    public UsuarioExibitionDTO(Usuario usuario) {
+        this(usuario, null); // saldoTotal será null quando não informado
+    }
+
+
 }

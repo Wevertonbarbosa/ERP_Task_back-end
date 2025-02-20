@@ -29,16 +29,21 @@ public class UsuarioService {
     private TarefaRepository tarefaRepository;
 
     @Autowired
+    private MesadaService mesadaService;
+
+    @Autowired
     private EmailUsuarioService emailUsuarioService;
 
 
     public List<UsuarioExibitionDTO> listarMentorados(Long adminId) {
         List<Usuario> mentorados = usuarioRepository.findMentoradosByAdmin(adminId);
         return mentorados.stream()
-                .map(UsuarioExibitionDTO::new)
+                .map(usuario -> {
+                    Double saldoTotal = mesadaService.calcularSaldoTotal(usuario.getUsuarioId());
+                    return new UsuarioExibitionDTO(usuario, saldoTotal);
+                })
                 .toList();
     }
-
 
 
     public UsuarioExibitionDTO criarUsuario(UsuarioCadastroDTO usuarioCadastroDTO, Long adminId) {
@@ -65,20 +70,22 @@ public class UsuarioService {
 
     // Buscar usuário por ID
     public UsuarioExibitionDTO buscarUsuarioPorId(Long id) {
-        Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
 
-        if (usuarioOptional.isPresent()) {
-            return new UsuarioExibitionDTO(usuarioOptional.get());
-        } else {
-            throw new UsuarioNaoEncontradoException("Usuário não encontrado no banco de dados!");
-        }
+        Double saldoTotal = mesadaService.calcularSaldoTotal(usuario.getUsuarioId());
+
+        return new UsuarioExibitionDTO(usuario, saldoTotal);
     }
 
     // Listar todos os usuários
     public List<UsuarioExibitionDTO> listarTodosUsuarios() {
         return usuarioRepository.findAll()
                 .stream()
-                .map(UsuarioExibitionDTO::new)
+                .map(usuario -> {
+                    Double saldoTotal = mesadaService.calcularSaldoTotal(usuario.getUsuarioId());
+                    return new UsuarioExibitionDTO(usuario, saldoTotal);
+                })
                 .toList();
     }
 
