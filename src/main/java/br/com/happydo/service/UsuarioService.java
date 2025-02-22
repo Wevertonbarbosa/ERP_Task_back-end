@@ -1,5 +1,6 @@
 package br.com.happydo.service;
 
+import br.com.happydo.dto.AtualizarSaldoDTO;
 import br.com.happydo.dto.UsuarioCadastroDTO;
 import br.com.happydo.dto.UsuarioExibitionDTO;
 import br.com.happydo.dto.UsuarioTarefasExibitionDTO;
@@ -35,13 +36,11 @@ public class UsuarioService {
     private EmailUsuarioService emailUsuarioService;
 
 
+    // Listar mentorados com saldo total
     public List<UsuarioExibitionDTO> listarMentorados(Long adminId) {
         List<Usuario> mentorados = usuarioRepository.findMentoradosByAdmin(adminId);
         return mentorados.stream()
-                .map(usuario -> {
-                    Double saldoTotal = mesadaService.calcularSaldoTotal(usuario.getUsuarioId());
-                    return new UsuarioExibitionDTO(usuario, saldoTotal);
-                })
+                .map(UsuarioExibitionDTO::new)
                 .toList();
     }
 
@@ -63,6 +62,8 @@ public class UsuarioService {
             usuario.setAdminResponsavel(admin);
         }
 
+        usuario.setSaldoTotal(0.0);
+
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
         return new UsuarioExibitionDTO(usuarioSalvo);
     }
@@ -72,20 +73,15 @@ public class UsuarioService {
     public UsuarioExibitionDTO buscarUsuarioPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
-
-        Double saldoTotal = mesadaService.calcularSaldoTotal(usuario.getUsuarioId());
-
-        return new UsuarioExibitionDTO(usuario, saldoTotal);
+        return new UsuarioExibitionDTO(usuario);
     }
+
 
     // Listar todos os usuários
     public List<UsuarioExibitionDTO> listarTodosUsuarios() {
         return usuarioRepository.findAll()
                 .stream()
-                .map(usuario -> {
-                    Double saldoTotal = mesadaService.calcularSaldoTotal(usuario.getUsuarioId());
-                    return new UsuarioExibitionDTO(usuario, saldoTotal);
-                })
+                .map(UsuarioExibitionDTO::new)
                 .toList();
     }
 
@@ -118,26 +114,41 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
-    // Atualizar usuário
+    // Atualizar usuário (preservando saldoTotal)
     public UsuarioExibitionDTO atualizarUsuario(Long id, UsuarioCadastroDTO usuarioCadastroDTO) {
         Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
 
         if (usuarioOptional.isPresent()) {
             Usuario usuarioExistente = usuarioOptional.get();
 
-            // Mantém o admin responsável existente
+            // Mantém o admin responsável e o saldoTotal existente
             Usuario adminResponsavel = usuarioExistente.getAdminResponsavel();
+            Double saldoTotalExistente = usuarioExistente.getSaldoTotal();
 
-            // Atualiza os dados do usuário (mas mantém o adminResponsavel)
-            BeanUtils.copyProperties(usuarioCadastroDTO, usuarioExistente, "usuarioId", "adminResponsavel");
+            BeanUtils.copyProperties(usuarioCadastroDTO, usuarioExistente, "usuarioId", "adminResponsavel", "saldoTotal");
 
             usuarioExistente.setUsuarioId(id);
-            usuarioExistente.setAdminResponsavel(adminResponsavel); // Garante que o vínculo com o admin continua
+            usuarioExistente.setAdminResponsavel(adminResponsavel);
+            usuarioExistente.setSaldoTotal(saldoTotalExistente); // Garante que o saldo total não seja sobrescrito
 
             return new UsuarioExibitionDTO(usuarioRepository.save(usuarioExistente));
         } else {
             throw new UsuarioNaoEncontradoException("Usuário não encontrado.");
         }
+    }
+
+    public UsuarioExibitionDTO atualizarSaldoUsuario(Long id, AtualizarSaldoDTO saldoDTO) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
+
+        // Atualiza o saldo
+        usuario.setSaldoTotal(saldoDTO.valor());
+
+        // Salva a alteração no banco
+        usuarioRepository.save(usuario);
+
+        // Retorna o DTO atualizado
+        return new UsuarioExibitionDTO(usuario);
     }
 
 

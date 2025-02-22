@@ -1,5 +1,6 @@
 package br.com.happydo.controller;
 
+import br.com.happydo.dto.AtualizarSaldoDTO;
 import br.com.happydo.dto.UsuarioCadastroDTO;
 import br.com.happydo.dto.UsuarioExibitionDTO;
 import br.com.happydo.dto.UsuarioTarefasExibitionDTO;
@@ -93,6 +94,15 @@ public class UsuarioController {
         UsuarioExibitionDTO usuarioAtualizado = usuarioService.atualizarUsuario(id, usuarioCadastroDTO);
         return ResponseEntity.ok(usuarioAtualizado);
 
+    }
+
+    @PutMapping("/{id}/saldo")
+    public ResponseEntity<UsuarioExibitionDTO> atualizarSaldo(
+            @PathVariable Long id,
+            @RequestBody AtualizarSaldoDTO saldoDTO) {
+
+        UsuarioExibitionDTO usuarioAtualizado = usuarioService.atualizarSaldoUsuario(id, saldoDTO);
+        return ResponseEntity.ok(usuarioAtualizado);
     }
 
 

@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,20 +25,21 @@ public class MesadaService {
     private UsuarioRepository usuarioRepository;
 
     public MesadaDTO salvarMesada(Long usuarioId, MesadaDTO mesadaDTO) {
-        Optional<Usuario> usuarioOpt = usuarioRepository.findById(usuarioId);
-        if (usuarioOpt.isEmpty()) {
-            throw new UsuarioNaoEncontradoException("Usuário não encontrado");
-        }
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
 
-        if (!usuarioOpt.get().getRole().equals(UsuarioRole.USER)) {
+        if (!usuario.getRole().equals(UsuarioRole.USER)) {
             throw new MesadaSemPermissaoException("Apenas usuários do tipo USER podem receber mesada");
         }
 
         Mesada mesada = new Mesada();
-        mesada.setUsuario(usuarioOpt.get());
+        mesada.setUsuario(usuario);
         mesada.setValor(mesadaDTO.valor());
         mesada.setDataRecebimento(java.time.LocalDate.now());
 
+        usuario.setSaldoTotal(usuario.getSaldoTotal() + mesadaDTO.valor());
+
+        usuarioRepository.save(usuario);
         Mesada mesadaSalva = mesadaRepository.save(mesada);
         return new MesadaDTO(mesadaSalva);
     }
@@ -63,22 +63,43 @@ public class MesadaService {
         Mesada mesada = mesadaRepository.findById(mesadaId)
                 .orElseThrow(() -> new MesadaNaoEncontradaException("Mesada não encontrada"));
 
+        // Remove o valor antigo do saldo total
+        usuario.setSaldoTotal(usuario.getSaldoTotal() - mesada.getValor());
+
+        // Atualiza a mesada com o novo valor
         mesada.setValor(mesadaDTO.valor());
         mesada.setDataRecebimento(mesadaDTO.dataRecebimento());
 
+        // Adiciona o novo valor da mesada ao saldo total
+        usuario.setSaldoTotal(usuario.getSaldoTotal() + mesadaDTO.valor());
+
+        usuarioRepository.save(usuario);
         mesadaRepository.save(mesada);
         return new MesadaDTO(mesada);
     }
 
     public void excluirMesada(Long mesadaId) {
-        if (!mesadaRepository.existsById(mesadaId)) {
-            throw new MesadaNaoEncontradaException("Mesada não encontrada");
-        }
+        Mesada mesada = mesadaRepository.findById(mesadaId)
+                .orElseThrow(() -> new MesadaNaoEncontradaException("Mesada não encontrada"));
+
+        Usuario usuario = mesada.getUsuario();
+
+        // Calcula o novo saldo e impede que fique negativo
+        double novoSaldo = usuario.getSaldoTotal() - mesada.getValor();
+        usuario.setSaldoTotal(Math.max(0.0, novoSaldo)); // Garante que o saldo nunca será negativo
+
+        // Salva o usuário atualizado
+        usuarioRepository.save(usuario);
+
+
         mesadaRepository.deleteById(mesadaId);
     }
 
 
     public Double calcularSaldoTotal(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
+
         return mesadaRepository.findByUsuarioUsuarioId(usuarioId)
                 .stream()
                 .mapToDouble(Mesada::getValor)

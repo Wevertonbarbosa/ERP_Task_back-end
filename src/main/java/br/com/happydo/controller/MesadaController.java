@@ -29,6 +29,15 @@ public class MesadaController {
         return ResponseEntity.ok(mesadaDTO);
     }
 
+    //BUSCA O SALDO TOTAL DO USUARIO MEDIANTE A QUANTIDADE DE MESADA RECEBIDA
+    @GetMapping("/saldo/{usuarioId}")
+    public ResponseEntity<Double> calcularSaldoTotal(@PathVariable Long usuarioId) {
+        Double saldoTotal = mesadaService.calcularSaldoTotal(usuarioId);
+        return ResponseEntity.ok(saldoTotal);
+    }
+
+
+
     // Criar nova mesada para um usuário
     @PostMapping("/{usuarioId}")
     public ResponseEntity<MesadaDTO> criarMesada(@PathVariable Long usuarioId, @RequestBody MesadaDTO mesadaDTO) {

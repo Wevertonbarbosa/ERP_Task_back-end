@@ -37,7 +37,8 @@ public class Usuario {
     @Column(name = "tarefas_pendentes")
     private Integer tarefasPendentes = 0;
 
-
+    @Column(name = "saldo_total", nullable = false)
+    private Double saldoTotal = 0.0;
 
     @OneToMany(mappedBy = "criador")
     private List<Tarefa> tarefasCriadas;
