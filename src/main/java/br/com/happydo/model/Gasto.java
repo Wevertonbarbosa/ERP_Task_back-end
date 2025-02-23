@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "tbl_gastos")
 @AllArgsConstructor
@@ -33,6 +35,9 @@ public class Gasto {
     private String produto;
 
     private String descricao;
+
+    private LocalDate dataGasto;
+
 
 
 }

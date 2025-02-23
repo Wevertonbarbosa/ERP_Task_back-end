@@ -5,6 +5,8 @@ import br.com.happydo.model.Gasto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.LocalDate;
+
 public record GastoDTO(
         Long id,
         Long usuario,
@@ -17,7 +19,9 @@ public record GastoDTO(
         @NotBlank(message = "O produto do gasto é obrigatório!")
         String produto,
 
-        String descricao
+        String descricao,
+
+        LocalDate dataGasto
 ) {
 
     public GastoDTO(Gasto gasto) {
@@ -28,7 +32,8 @@ public record GastoDTO(
                 gasto.getCategoria(),
                 gasto.getTitulo(),
                 gasto.getProduto(),
-                gasto.getDescricao()
+                gasto.getDescricao(),
+                gasto.getDataGasto()
         );
     }
 }

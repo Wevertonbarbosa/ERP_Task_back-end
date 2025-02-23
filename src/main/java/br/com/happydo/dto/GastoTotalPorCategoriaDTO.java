@@ -1,4 +1,6 @@
 package br.com.happydo.dto;
 
-public record GastoTotalPorCategoriaDTO(Double totalEssencial, Double totalNaoEssencial) {
+import java.time.YearMonth;
+
+public record GastoTotalPorCategoriaDTO(YearMonth mesAno, Double totalEssencial, Double totalNaoEssencial) {
 }

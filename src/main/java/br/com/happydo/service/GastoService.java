@@ -14,7 +14,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class GastoService {
@@ -50,6 +54,7 @@ public class GastoService {
         Gasto gasto = new Gasto();
         BeanUtils.copyProperties(gastoDTO, gasto);
         gasto.setUsuario(usuario);
+        gasto.setDataGasto(java.time.LocalDate.now());
 
         Gasto gastoSalvo = gastoRepository.save(gasto);
 
@@ -84,6 +89,7 @@ public class GastoService {
 
         // Atualiza os dados do gasto
         BeanUtils.copyProperties(gastoDTO, gastoExistente, "id", "usuario");
+        gastoExistente.setDataGasto(gastoDTO.dataGasto());
 
         Gasto gastoAtualizado = gastoRepository.save(gastoExistente);
 
@@ -132,20 +138,41 @@ public class GastoService {
     }
 
 
-    public GastoTotalPorCategoriaDTO calcularGastoTotalPorCategoria(Long usuarioId) {
+    public List<GastoTotalPorCategoriaDTO> calcularGastoTotalPorCategoria(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+
         List<Gasto> gastos = gastoRepository.findByUsuarioUsuarioId(usuarioId);
 
-        double totalEssencial = gastos.stream()
-                .filter(gasto -> gasto.getCategoria() == CategoriaGasto.ESSENCIAL)
-                .mapToDouble(Gasto::getValor)
-                .sum();
+        if (gastos.isEmpty()) {
+            throw new GastoNaoEncontradoException("Nenhum gasto encontrado para este usuário.");
+        }
 
-        double totalNaoEssencial = gastos.stream()
-                .filter(gasto -> gasto.getCategoria() == CategoriaGasto.NAO_ESSENCIAL)
-                .mapToDouble(Gasto::getValor)
-                .sum();
+        // Agrupa os gastos por mês e ano
+        Map<YearMonth, GastoTotalPorCategoriaDTO> gastosPorMes = gastos.stream()
+                .collect(Collectors.groupingBy(
+                        gasto -> YearMonth.from(gasto.getDataGasto()),
+                        Collectors.collectingAndThen(Collectors.toList(), listaGastos -> {
 
-        return new GastoTotalPorCategoriaDTO(totalEssencial, totalNaoEssencial);
+                            double totalEssencial = listaGastos.stream()
+                                    .filter(g -> g.getCategoria() == CategoriaGasto.ESSENCIAL)
+                                    .mapToDouble(Gasto::getValor)
+                                    .sum();
+
+                            double totalNaoEssencial = listaGastos.stream()
+                                    .filter(g -> g.getCategoria() == CategoriaGasto.NAO_ESSENCIAL)
+                                    .mapToDouble(Gasto::getValor)
+                                    .sum();
+
+                            return new GastoTotalPorCategoriaDTO(
+                                    YearMonth.from(listaGastos.get(0).getDataGasto()),
+                                    totalEssencial,
+                                    totalNaoEssencial
+                            );
+                        })
+                ));
+
+        return new ArrayList<>(gastosPorMes.values());
     }
 
 

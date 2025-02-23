@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -40,14 +41,17 @@ public class GastoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
     // retorna total de gasto por categoria
     @GetMapping("/{usuarioId}/gastos/categoria")
-    public ResponseEntity<GastoTotalPorCategoriaDTO> calcularGastoTotalPorCategoria(@PathVariable Long usuarioId) {
+    public ResponseEntity<List<GastoTotalPorCategoriaDTO>> calcularGastoTotalPorCategoria(@PathVariable Long usuarioId) {
         try {
-            GastoTotalPorCategoriaDTO gastosTotais = gastoService.calcularGastoTotalPorCategoria(usuarioId);
+            List<GastoTotalPorCategoriaDTO> gastosTotais = gastoService.calcularGastoTotalPorCategoria(usuarioId);
             return ResponseEntity.ok(gastosTotais);
         } catch (UsuarioNaoEncontradoException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (GastoNaoEncontradoException e) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
     }
 
