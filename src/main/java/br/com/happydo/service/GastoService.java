@@ -1,7 +1,8 @@
 package br.com.happydo.service;
 
 import br.com.happydo.dto.GastoDTO;
-import br.com.happydo.dto.GastoTotalPorCategoriaDTO;
+import br.com.happydo.dto.GastoTotalCategoriaDTO;
+import br.com.happydo.dto.GastoTotalPorCategoriaMensalDTO;
 import br.com.happydo.exception.GastoNaoEncontradoException;
 import br.com.happydo.exception.SaldoInsuficienteException;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
@@ -138,7 +139,7 @@ public class GastoService {
     }
 
 
-    public List<GastoTotalPorCategoriaDTO> calcularGastoTotalPorCategoria(Long usuarioId) {
+    public List<GastoTotalPorCategoriaMensalDTO> calcularGastoTotalPorCategoriaMensal(Long usuarioId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
@@ -149,7 +150,7 @@ public class GastoService {
         }
 
         // Agrupa os gastos por mês e ano
-        Map<YearMonth, GastoTotalPorCategoriaDTO> gastosPorMes = gastos.stream()
+        Map<YearMonth, GastoTotalPorCategoriaMensalDTO> gastosPorMes = gastos.stream()
                 .collect(Collectors.groupingBy(
                         gasto -> YearMonth.from(gasto.getDataGasto()),
                         Collectors.collectingAndThen(Collectors.toList(), listaGastos -> {
@@ -164,7 +165,7 @@ public class GastoService {
                                     .mapToDouble(Gasto::getValor)
                                     .sum();
 
-                            return new GastoTotalPorCategoriaDTO(
+                            return new GastoTotalPorCategoriaMensalDTO(
                                     YearMonth.from(listaGastos.get(0).getDataGasto()),
                                     totalEssencial,
                                     totalNaoEssencial
@@ -174,6 +175,30 @@ public class GastoService {
 
         return new ArrayList<>(gastosPorMes.values());
     }
+
+    public GastoTotalCategoriaDTO GastoTotalPorCategoria(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+
+        List<Gasto> gastos = gastoRepository.findByUsuarioUsuarioId(usuarioId);
+
+        if (gastos.isEmpty()) {
+            throw new GastoNaoEncontradoException("Nenhum gasto encontrado para este usuário.");
+        }
+
+        double totalEssencial = gastos.stream()
+                .filter(g -> g.getCategoria() == CategoriaGasto.ESSENCIAL)
+                .mapToDouble(Gasto::getValor)
+                .sum();
+
+        double totalNaoEssencial = gastos.stream()
+                .filter(g -> g.getCategoria() == CategoriaGasto.NAO_ESSENCIAL)
+                .mapToDouble(Gasto::getValor)
+                .sum();
+
+        return new GastoTotalCategoriaDTO(totalEssencial, totalNaoEssencial);
+    }
+
 
 
 }

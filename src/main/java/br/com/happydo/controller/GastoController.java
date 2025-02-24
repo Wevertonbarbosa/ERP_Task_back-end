@@ -1,7 +1,8 @@
 package br.com.happydo.controller;
 
 import br.com.happydo.dto.GastoDTO;
-import br.com.happydo.dto.GastoTotalPorCategoriaDTO;
+import br.com.happydo.dto.GastoTotalCategoriaDTO;
+import br.com.happydo.dto.GastoTotalPorCategoriaMensalDTO;
 import br.com.happydo.exception.GastoNaoEncontradoException;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
 import br.com.happydo.service.GastoService;
@@ -11,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -42,11 +42,11 @@ public class GastoController {
         }
     }
 
-    // retorna total de gasto por categoria
-    @GetMapping("/{usuarioId}/gastos/categoria")
-    public ResponseEntity<List<GastoTotalPorCategoriaDTO>> calcularGastoTotalPorCategoria(@PathVariable Long usuarioId) {
+    // retorna total de gasto por categoria mensal
+    @GetMapping("/{usuarioId}/gastos/categoria/mensal")
+    public ResponseEntity<List<GastoTotalPorCategoriaMensalDTO>> calcularGastoTotalPorCategoria(@PathVariable Long usuarioId) {
         try {
-            List<GastoTotalPorCategoriaDTO> gastosTotais = gastoService.calcularGastoTotalPorCategoria(usuarioId);
+            List<GastoTotalPorCategoriaMensalDTO> gastosTotais = gastoService.calcularGastoTotalPorCategoriaMensal(usuarioId);
             return ResponseEntity.ok(gastosTotais);
         } catch (UsuarioNaoEncontradoException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -54,6 +54,20 @@ public class GastoController {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
     }
+
+    //retorna o total de gasto por categoria completo
+    @GetMapping("/{usuarioId}/gastos/total/categoria")
+    public ResponseEntity<GastoTotalCategoriaDTO> calcularGastoTotalCategoria(@PathVariable Long usuarioId) {
+        try {
+            GastoTotalCategoriaDTO totalCategoria = gastoService.GastoTotalPorCategoria(usuarioId);
+            return ResponseEntity.ok(totalCategoria);
+        } catch (UsuarioNaoEncontradoException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (GastoNaoEncontradoException e) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+    }
+
 
     //REGISTRA O GASTO
     @PostMapping("/{usuarioId}/registro")
