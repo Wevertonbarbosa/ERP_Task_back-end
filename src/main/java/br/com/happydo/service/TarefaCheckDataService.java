@@ -96,6 +96,66 @@ public class TarefaCheckDataService {
     }
 
 
+    public void checkAdminTask( Long idTask, Long adminId, boolean conlcuirTarefa) {
+        Usuario usuario = usuarioRepository.findById(adminId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+
+        if (!usuario.getRole().equals(UsuarioRole.ADMIN)) {
+            throw new AcessoNegadoException("Apenas usuários ADMIN pode concluir a tarefa diretamente.");
+        }
+
+        Tarefa tarefa = tarefaRepository.findById(idTask)
+                .orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
+
+
+        TarefaCheckData tarefaCheckData = new TarefaCheckData();
+        tarefaCheckData.setAdmin(tarefa.getCriador());
+        tarefaCheckData.setTarefa(tarefa);
+        tarefaCheckData.setUsuario_id(usuario);
+
+        Usuario usuarioResponsavel = tarefaCheckData.getUsuario_id();
+
+        if (conlcuirTarefa) {
+            tarefaCheckData.setSinalizadaUsuario(true);
+            tarefaCheckData.setConcluida(true);
+            tarefaCheckData.getTarefa().setStatus(StatusTarefa.CONCLUIDO);
+
+//             Atualiza contadores
+            if (usuarioResponsavel.getTarefasConcluidas() == null) {
+                usuarioResponsavel.setTarefasConcluidas(0);
+            }
+            usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() + 1);
+
+            if (usuarioResponsavel.getTarefasPendentes() == null) {
+                usuarioResponsavel.setTarefasPendentes(0);
+            }
+            usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() - 1);
+            usuarioRepository.save(usuarioResponsavel);
+        } else {
+            tarefaCheckData.setSinalizadaUsuario(false);
+            tarefaCheckData.setConcluida(false);
+            tarefaCheckData.getTarefa().setStatus(StatusTarefa.ANDAMENTO);
+
+            // Atualiza contadores ao negar a conclusão
+            if (usuarioResponsavel.getTarefasConcluidas() == null || usuarioResponsavel.getTarefasConcluidas() <= 0) {
+                usuarioResponsavel.setTarefasConcluidas(0);  // Garantir que não tenha valor negativo
+            }
+            usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1); // Decrementa tarefas concluídas
+
+            if (usuarioResponsavel.getTarefasPendentes() == null) {
+                usuarioResponsavel.setTarefasPendentes(0);
+            }
+            usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() + 1); // Incrementa tarefas pendentes
+
+            usuarioRepository.save(usuarioResponsavel);
+        }
+
+
+        tarefaRepository.save(tarefaCheckData.getTarefa());
+        tarefaCheckDataRepository.save(tarefaCheckData);
+    }
+
+
     public void checkTask(Long checkId, Long adminId, boolean aceitaConclusao) {
         Usuario usuario = usuarioRepository.findById(adminId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
@@ -187,10 +247,13 @@ public class TarefaCheckDataService {
                 usuarioResponsavel.setTarefasPendentes(0);
             }
             usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() + 1);
+
+            tarefaCheckData.getTarefa().setStatus(StatusTarefa.ANDAMENTO);
+
             usuarioRepository.save(usuarioResponsavel);
         }
 
-
+        tarefaRepository.save(tarefaCheckData.getTarefa());
         tarefaCheckDataRepository.delete(tarefaCheckData);
     }
 

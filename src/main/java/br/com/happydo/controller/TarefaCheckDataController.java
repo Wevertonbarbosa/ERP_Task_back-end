@@ -2,8 +2,12 @@ package br.com.happydo.controller;
 
 import br.com.happydo.dto.TarefaCheckDataDTO;
 import br.com.happydo.dto.TarefaSinalizadaConcluidaDTO;
+import br.com.happydo.exception.AcessoNegadoException;
+import br.com.happydo.exception.TarefaNaoEncontradaException;
+import br.com.happydo.exception.UsuarioNaoEncontradoException;
 import br.com.happydo.service.TarefaCheckDataService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -61,4 +65,29 @@ public class TarefaCheckDataController {
         tarefaCheckDataService.deletarConfirmacaoTarefa(adminId, checkId);
         return ResponseEntity.noContent().build();
     }
+
+
+    @PostMapping("/{idTask}/concluir/{adminId}/{conlcuirTarefa}")
+    public ResponseEntity<Void> adminConcluirTarefa(
+            @PathVariable Long idTask,
+            @PathVariable Long adminId,
+            @PathVariable boolean conlcuirTarefa) {
+
+        try {
+            tarefaCheckDataService.checkAdminTask(idTask, adminId, conlcuirTarefa);
+            return ResponseEntity.ok().build();
+        } catch (UsuarioNaoEncontradoException e) {
+            throw new UsuarioNaoEncontradoException("Usuário não encontrado.");
+        } catch (TarefaNaoEncontradaException e) {
+            throw new TarefaNaoEncontradaException("Tarefa não encontrado.");
+        } catch (AcessoNegadoException e) {
+            throw new AcessoNegadoException("Apenas usuários ADMIN pode concluir a tarefa diretamente.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Retorna 500 para outros erros inesperados
+        }
+
+
+    }
+
+
 }
