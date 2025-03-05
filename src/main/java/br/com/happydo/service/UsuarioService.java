@@ -36,7 +36,6 @@ public class UsuarioService {
     private EmailUsuarioService emailUsuarioService;
 
 
-    // Listar mentorados com saldo total
     public List<UsuarioExibitionDTO> listarMentorados(Long adminId) {
         List<Usuario> mentorados = usuarioRepository.findMentoradosByAdmin(adminId);
         return mentorados.stream()
@@ -46,30 +45,28 @@ public class UsuarioService {
 
 
     public UsuarioExibitionDTO criarUsuario(UsuarioCadastroDTO usuarioCadastroDTO, Long adminId) {
-        // Verificar se o email já existe
         if (usuarioRepository.existsByEmail(usuarioCadastroDTO.email())) {
             throw new ConflitoEmailException("Já existe um usuário com este email.");
         }
 
-        // Criar novo usuário
         Usuario usuario = new Usuario();
         BeanUtils.copyProperties(usuarioCadastroDTO, usuario);
 
-        // Se for um usuário comum (USER), vincular ao admin que o criou
         if (usuarioCadastroDTO.role() == UsuarioRole.USER) {
             Usuario admin = usuarioRepository.findById(adminId)
                     .orElseThrow(() -> new UsuarioNaoEncontradoException("Admin não encontrado."));
             usuario.setAdminResponsavel(admin);
+            usuario.setSaldoTotal(0.0);
+        }else{
+            usuario.setSaldoTotal(1000000.0);
         }
 
-        usuario.setSaldoTotal(0.0);
 
         Usuario usuarioSalvo = usuarioRepository.save(usuario);
         return new UsuarioExibitionDTO(usuarioSalvo);
     }
 
 
-    // Buscar usuário por ID
     public UsuarioExibitionDTO buscarUsuarioPorId(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
@@ -77,7 +74,6 @@ public class UsuarioService {
     }
 
 
-    // Listar todos os usuários
     public List<UsuarioExibitionDTO> listarTodosUsuarios() {
         return usuarioRepository.findAll()
                 .stream()
@@ -89,7 +85,6 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
 
-        // Garantindo que os valores não sejam nulos
         Integer concluidas = (usuario.getTarefasConcluidas() != null) ? usuario.getTarefasConcluidas() : 0;
         Integer pendentes = (usuario.getTarefasPendentes() != null) ? usuario.getTarefasPendentes() : 0;
 
@@ -98,7 +93,6 @@ public class UsuarioService {
     }
 
 
-    // Deletar usuário com validação
     public void deleteUsuario(Long id) {
         if (!usuarioRepository.existsById(id)) {
             throw new UsuarioNaoEncontradoException("Usuário com ID " + id + " não encontrado.");
@@ -114,14 +108,12 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
-    // Atualizar usuário (preservando saldoTotal)
     public UsuarioExibitionDTO atualizarUsuario(Long id, UsuarioCadastroDTO usuarioCadastroDTO) {
         Optional<Usuario> usuarioOptional = usuarioRepository.findById(id);
 
         if (usuarioOptional.isPresent()) {
             Usuario usuarioExistente = usuarioOptional.get();
 
-            // Mantém o admin responsável e o saldoTotal existente
             Usuario adminResponsavel = usuarioExistente.getAdminResponsavel();
             Double saldoTotalExistente = usuarioExistente.getSaldoTotal();
 
@@ -129,7 +121,7 @@ public class UsuarioService {
 
             usuarioExistente.setUsuarioId(id);
             usuarioExistente.setAdminResponsavel(adminResponsavel);
-            usuarioExistente.setSaldoTotal(saldoTotalExistente); // Garante que o saldo total não seja sobrescrito
+            usuarioExistente.setSaldoTotal(saldoTotalExistente);
 
             return new UsuarioExibitionDTO(usuarioRepository.save(usuarioExistente));
         } else {
@@ -141,13 +133,10 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
 
-        // Atualiza o saldo
         usuario.setSaldoTotal(saldoDTO.valor());
 
-        // Salva a alteração no banco
         usuarioRepository.save(usuario);
 
-        // Retorna o DTO atualizado
         return new UsuarioExibitionDTO(usuario);
     }
 

@@ -24,14 +24,12 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
-    //Retorna lista de mentorados do ADMIN
     @GetMapping("/{adminId}/mentorados")
     public ResponseEntity<List<UsuarioExibitionDTO>> listarMentorados(@PathVariable Long adminId) {
         List<UsuarioExibitionDTO> mentorados = usuarioService.listarMentorados(adminId);
         return ResponseEntity.ok(mentorados);
     }
 
-    // ✅ Criar mentorado (USER) vinculado a um ADMIN específico
     @PostMapping("/{adminId}/mentorados")
     public ResponseEntity<UsuarioExibitionDTO> criarMentorado(
             @PathVariable Long adminId,
@@ -46,7 +44,6 @@ public class UsuarioController {
     }
 
 
-    // ✅ Criar um usuário ADMIN (sem vínculo com outro admin)
     @PostMapping("/usuarios")
     public ResponseEntity<UsuarioExibitionDTO> criarAdmin(
             @RequestBody @Valid UsuarioCadastroDTO usuarioCadastroDTO) {
@@ -59,7 +56,6 @@ public class UsuarioController {
         }
     }
 
-    // Buscar usuario por ID
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioExibitionDTO> buscarUsuarioPorId(@PathVariable Long id) {
         try {
@@ -70,14 +66,12 @@ public class UsuarioController {
         }
     }
 
-    // Listar todos os usuarios
     @GetMapping
     public ResponseEntity<List<UsuarioExibitionDTO>> listarTodosUsuarios() {
         List<UsuarioExibitionDTO> usuarios = usuarioService.listarTodosUsuarios();
         return new ResponseEntity<>(usuarios, HttpStatus.OK);
     }
 
-    //listar as tarefas pendentes e concluidas do usuario
     @GetMapping("/{usuarioId}/tarefas")
     public ResponseEntity<UsuarioTarefasExibitionDTO> getTarefasUsuarioStatus(@PathVariable Long usuarioId) {
         UsuarioTarefasExibitionDTO tarefas = usuarioService.tarefasStatus(usuarioId);
@@ -85,7 +79,6 @@ public class UsuarioController {
     }
 
 
-    //Atualiza os Usuarios
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioExibitionDTO> atualizarUsuario(
             @PathVariable Long id,
@@ -106,7 +99,6 @@ public class UsuarioController {
     }
 
 
-    // Deletar usuario
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarUsuario(@PathVariable Long id) {
         try {

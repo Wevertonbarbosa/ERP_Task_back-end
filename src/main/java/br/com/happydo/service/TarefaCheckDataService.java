@@ -120,7 +120,6 @@ public class TarefaCheckDataService {
             tarefaCheckData.setConcluida(true);
             tarefaCheckData.getTarefa().setStatus(StatusTarefa.CONCLUIDO);
 
-//             Atualiza contadores
             if (usuarioResponsavel.getTarefasConcluidas() == null) {
                 usuarioResponsavel.setTarefasConcluidas(0);
             }
@@ -136,16 +135,15 @@ public class TarefaCheckDataService {
             tarefaCheckData.setConcluida(false);
             tarefaCheckData.getTarefa().setStatus(StatusTarefa.ANDAMENTO);
 
-            // Atualiza contadores ao negar a conclusão
             if (usuarioResponsavel.getTarefasConcluidas() == null || usuarioResponsavel.getTarefasConcluidas() <= 0) {
-                usuarioResponsavel.setTarefasConcluidas(0);  // Garantir que não tenha valor negativo
+                usuarioResponsavel.setTarefasConcluidas(0);
             }
-            usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1); // Decrementa tarefas concluídas
+            usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1);
 
             if (usuarioResponsavel.getTarefasPendentes() == null) {
                 usuarioResponsavel.setTarefasPendentes(0);
             }
-            usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() + 1); // Incrementa tarefas pendentes
+            usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() + 1);
 
             usuarioRepository.save(usuarioResponsavel);
         }
@@ -182,7 +180,6 @@ public class TarefaCheckDataService {
             tarefaCheckData.setConcluida(true);
             tarefaCheckData.getTarefa().setStatus(StatusTarefa.CONCLUIDO);
 
-            // Atualiza contadores
             if (usuarioResponsavel.getTarefasConcluidas() == null) {
                 usuarioResponsavel.setTarefasConcluidas(0);
             }
@@ -199,16 +196,15 @@ public class TarefaCheckDataService {
             tarefaCheckData.setConcluida(false);
             tarefaCheckData.getTarefa().setStatus(StatusTarefa.ANDAMENTO);
 
-            // Atualiza contadores ao negar a conclusão
             if (usuarioResponsavel.getTarefasConcluidas() == null || usuarioResponsavel.getTarefasConcluidas() <= 0) {
-                usuarioResponsavel.setTarefasConcluidas(0);  // Garantir que não tenha valor negativo
+                usuarioResponsavel.setTarefasConcluidas(0);
             }
-            usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1); // Decrementa tarefas concluídas
+            usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1);
 
             if (usuarioResponsavel.getTarefasPendentes() == null) {
                 usuarioResponsavel.setTarefasPendentes(0);
             }
-            usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() + 1); // Incrementa tarefas pendentes
+            usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() + 1);
 
             usuarioRepository.save(usuarioResponsavel);
         }
@@ -234,10 +230,8 @@ public class TarefaCheckDataService {
                     " por isso não pode excluir essa conclusão!");
         }
 
-        // Ajustar o contador de tarefas pendentes
         Usuario usuarioResponsavel = tarefaCheckData.getUsuario_id();
 
-        // Se a tarefa foi sinalizada como concluída, precisamos atualizar os contadores
         if (tarefaCheckData.isConcluida()) {
             if (usuarioResponsavel.getTarefasConcluidas() != null && usuarioResponsavel.getTarefasConcluidas() > 0) {
                 usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1);

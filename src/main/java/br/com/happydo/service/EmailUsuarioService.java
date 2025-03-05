@@ -12,7 +12,6 @@ public class EmailUsuarioService {
     @Autowired
     private JavaMailSender javaMailSender;
 
-    //COLOCAR O EMAIL DO CLIENTE (NAO ESQUECER)
     @Value("${spring.mail.username}")
     private String remetente;
 

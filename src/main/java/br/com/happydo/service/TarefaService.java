@@ -42,22 +42,20 @@ public class TarefaService {
 
         Tarefa tarefa = new Tarefa();
         BeanUtils.copyProperties(tarefaDTO, tarefa);
-        tarefa.setCriador(criador); // Associar o criador
-        tarefa.setResponsavel(responsavel); // Associar o responsavel
+        tarefa.setCriador(criador);
+        tarefa.setResponsavel(responsavel);
         tarefa.setStatus(StatusTarefa.ANDAMENTO);
 
         responsavel.setTarefasPendentes(responsavel.getTarefasPendentes() + 1);
         usuarioRepository.save(responsavel);
 
         if (tarefaDTO.frequencia() != null && tarefaDTO.frequencia().equals(FrequenciaTarefa.SEMANAL)) {
-            // Validação dos dias da semana
             List<String> diasValidos = Arrays.asList("segunda", "terça", "quarta", "quinta", "sexta", "sabado", "domingo");
             if (tarefaDTO.diasSemana() == null || tarefaDTO.diasSemana().isEmpty()) {
                 throw new DiasObrigatorioException("Os dias da semana são obrigatórios para tarefas com frequência semanal.");
             }
 
             for (String dia : tarefaDTO.diasSemana()) {
-                // Ignora se o dia for inserido em maiúsculas ou minúsculas
                 if (!diasValidos.contains(dia.trim().toLowerCase())) {
                     throw new DiaInvalidoException("Dia da semana inválido: " + dia);
                 }
@@ -76,12 +74,10 @@ public class TarefaService {
 
 
     public List<TarefaDTO> listarTarefas(Long usuarioId) {
-        // Recupera o usuário logado
         Usuario usuarioLogado = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
 
-        // Usuário mentorado: retorna apenas as tarefas delegadas a ele
         return tarefaRepository.findByResponsavel_UsuarioId(usuarioId).stream()
                 .map(TarefaDTO::new)
                 .toList();
@@ -93,7 +89,6 @@ public class TarefaService {
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
         if (usuarioLogado.getRole().equals(UsuarioRole.ADMIN)) {
-            // Buscar tarefas criadas pelo admin, mas com outro responsável
             return tarefaRepository.findByCriador_UsuarioIdAndResponsavel_UsuarioIdNot(usuarioId, usuarioId)
                     .stream()
                     .map(TarefaDTO::new)
@@ -120,7 +115,6 @@ public class TarefaService {
                 throw new ConflitoDatasException("A data de início não pode ser maior que a data de fim.");
             }
             BeanUtils.copyProperties(tarefaDTO, tarefa);
-            // Manter o ID da tarefa para evitar conflitos
             tarefa.setId(tarefaId);
 
 
@@ -129,10 +123,8 @@ public class TarefaService {
                 if (tarefaDTO.diasSemana() == null || tarefaDTO.diasSemana().isEmpty()) {
                     throw new DiasObrigatorioException("Os dias da semana são obrigatórios para tarefas com frequência semanal.");
                 }
-                // Validação dos dias da semana
                 List<String> diasValidos = Arrays.asList("segunda", "terça", "quarta", "quinta", "sexta", "sabado", "domingo");
                 for (String dia : tarefaDTO.diasSemana()) {
-                    // Ignora se o dia for inserido em maiúsculas ou minúsculas
                     if (!diasValidos.contains(dia.trim().toLowerCase())) {
                         throw new DiaInvalidoException("Dia da semana inválido: " + dia);
                     }

@@ -27,7 +27,7 @@ public class RedefinirSenhaController {
         try {
             redefinirSenhaService.redefinicaoSenha(email);
             return ResponseEntity.ok("Email enviado com sucesso!");
-        } catch (RuntimeException e) {
+        } catch (UsuarioNaoEncontradoException e) {
             throw new UsuarioNaoEncontradoException("Usuário não encontrado.");
         }
     }

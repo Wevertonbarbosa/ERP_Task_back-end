@@ -28,9 +28,7 @@ public class MesadaService {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
 
-        if (!usuario.getRole().equals(UsuarioRole.USER)) {
-            throw new MesadaSemPermissaoException("Apenas usuários do tipo USER podem receber mesada");
-        }
+
 
         Mesada mesada = new Mesada();
         mesada.setUsuario(usuario);
@@ -63,14 +61,11 @@ public class MesadaService {
         Mesada mesada = mesadaRepository.findById(mesadaId)
                 .orElseThrow(() -> new MesadaNaoEncontradaException("Mesada não encontrada"));
 
-        // Remove o valor antigo do saldo total
         usuario.setSaldoTotal(usuario.getSaldoTotal() - mesada.getValor());
 
-        // Atualiza a mesada com o novo valor
         mesada.setValor(mesadaDTO.valor());
         mesada.setDataRecebimento(mesadaDTO.dataRecebimento());
 
-        // Adiciona o novo valor da mesada ao saldo total
         usuario.setSaldoTotal(usuario.getSaldoTotal() + mesadaDTO.valor());
 
         usuarioRepository.save(usuario);
@@ -84,11 +79,9 @@ public class MesadaService {
 
         Usuario usuario = mesada.getUsuario();
 
-        // Calcula o novo saldo e impede que fique negativo
         double novoSaldo = usuario.getSaldoTotal() - mesada.getValor();
         usuario.setSaldoTotal(Math.max(0.0, novoSaldo)); // Garante que o saldo nunca será negativo
 
-        // Salva o usuário atualizado
         usuarioRepository.save(usuario);
 
 
@@ -99,6 +92,11 @@ public class MesadaService {
     public Double calcularSaldoTotal(Long usuarioId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
+
+        if (usuario.getRole() == UsuarioRole.ADMIN) {
+
+            return usuario.getSaldoTotal();
+        }
 
         return mesadaRepository.findByUsuarioUsuarioId(usuarioId)
                 .stream()

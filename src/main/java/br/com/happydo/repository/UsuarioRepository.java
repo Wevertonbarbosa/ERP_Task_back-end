@@ -12,7 +12,6 @@ import java.util.Optional;
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    // Verifica se já existe um usuário com o mesmo email
     boolean existsByEmail(String email);
 
     Optional<Usuario> findByEmail(String email);

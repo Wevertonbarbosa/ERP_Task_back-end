@@ -27,7 +27,6 @@ public class TarefaCheckDataController {
         return ResponseEntity.ok(tarefas);
     }
 
-    //USUARIO SINALIZANDO A CONCLUSAO DA TAREFA
     @PostMapping("/{tarefaId}/sinalizar/{usuarioId}")
     public ResponseEntity<TarefaCheckDataDTO> sinalizarConclusaoTarefa(
             @PathVariable Long tarefaId,
@@ -38,7 +37,6 @@ public class TarefaCheckDataController {
         return ResponseEntity.ok(tarefaDataConfirmando);
     }
 
-    //USUARIO SINALIZA NOVAMENTE TAREFA CONCLUIDA
     @PutMapping("/{checkId}/atualiza-sinalizar/{usuarioId}")
     public ResponseEntity<String> sinalizarConclusaoNovamenteTarefa(
             @PathVariable Long checkId,
@@ -47,7 +45,6 @@ public class TarefaCheckDataController {
         return ResponseEntity.ok("Tarefa sinalizada como concluida novamente!");
     }
 
-    //ADMIN CONFIRMANDO A CONCLUSAO DA TAREFA
     @PutMapping("/{checkId}/confirmar/{adminId}/{aceitaConclusao}")
     public ResponseEntity<String> concluirTarefas(
             @PathVariable Long checkId,

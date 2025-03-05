@@ -31,7 +31,7 @@ public class GastoController {
         }
     }
 
-    // ✅ Retorna o gasto total do usuário
+
     @GetMapping("/{usuarioId}/gastos/total")
     public ResponseEntity<Double> calcularGastoTotal(@PathVariable Long usuarioId) {
         try {
@@ -42,7 +42,7 @@ public class GastoController {
         }
     }
 
-    // retorna total de gasto por categoria mensal
+
     @GetMapping("/{usuarioId}/gastos/categoria/mensal")
     public ResponseEntity<List<GastoTotalPorCategoriaMensalDTO>> calcularGastoTotalPorCategoria(@PathVariable Long usuarioId) {
         try {
@@ -55,7 +55,7 @@ public class GastoController {
         }
     }
 
-    //retorna o total de gasto por categoria completo
+
     @GetMapping("/{usuarioId}/gastos/total/categoria")
     public ResponseEntity<GastoTotalCategoriaDTO> calcularGastoTotalCategoria(@PathVariable Long usuarioId) {
         try {
@@ -69,7 +69,6 @@ public class GastoController {
     }
 
 
-    //REGISTRA O GASTO
     @PostMapping("/{usuarioId}/registro")
     public ResponseEntity<GastoDTO> criarGasto(
             @PathVariable Long usuarioId,
@@ -82,7 +81,7 @@ public class GastoController {
         }
     }
 
-    // Buscar gasto por ID
+
     @GetMapping("/{gastoId}")
     public ResponseEntity<GastoDTO> buscarGastoPorId(@PathVariable Long gastoId) {
         try {
@@ -93,7 +92,7 @@ public class GastoController {
         }
     }
 
-    // Atualizar um gasto
+
     @PutMapping("/{usuarioId}/atualizar/{gastoId}")
     public ResponseEntity<GastoDTO> atualizarGasto(
             @PathVariable Long usuarioId,
@@ -107,7 +106,7 @@ public class GastoController {
         }
     }
 
-    // Deletar um gasto
+
     @DeleteMapping("/{gastoId}")
     public ResponseEntity<Void> deletarGasto(@PathVariable Long gastoId) {
         try {

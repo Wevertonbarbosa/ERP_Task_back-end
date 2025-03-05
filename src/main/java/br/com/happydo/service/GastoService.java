@@ -9,6 +9,7 @@ import br.com.happydo.exception.UsuarioNaoEncontradoException;
 import br.com.happydo.model.CategoriaGasto;
 import br.com.happydo.model.Gasto;
 import br.com.happydo.model.Usuario;
+import br.com.happydo.model.UsuarioRole;
 import br.com.happydo.repository.GastoRepository;
 import br.com.happydo.repository.UsuarioRepository;
 import org.springframework.beans.BeanUtils;
@@ -81,20 +82,17 @@ public class GastoService {
         Gasto gastoExistente = gastoRepository.findById(gastoId)
                 .orElseThrow(() -> new GastoNaoEncontradoException("Gasto não encontrado."));
 
-        // Calcula o saldo sem o gasto antigo
         Double saldoAntes = calcularSaldoTotal(usuarioId) + gastoExistente.getValor();
 
         if (saldoAntes < gastoDTO.valor()) {
             throw new SaldoInsuficienteException("Saldo insuficiente para atualizar este gasto.");
         }
 
-        // Atualiza os dados do gasto
         BeanUtils.copyProperties(gastoDTO, gastoExistente, "id", "usuario");
         gastoExistente.setDataGasto(gastoDTO.dataGasto());
 
         Gasto gastoAtualizado = gastoRepository.save(gastoExistente);
 
-        // Atualiza o saldo após a edição
         atualizarSaldo(usuarioId);
 
         return new GastoDTO(gastoAtualizado);
@@ -109,8 +107,18 @@ public class GastoService {
 
         gastoRepository.deleteById(gastoId);
 
-        // Atualiza o saldo após a exclusão do gasto
-        atualizarSaldo(usuarioId);
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
+
+        if (usuario.getRole() == UsuarioRole.ADMIN) {
+
+            usuario.setSaldoTotal(usuario.getSaldoTotal() + gasto.getValor());
+        } else {
+
+            usuario.setSaldoTotal(calcularSaldoTotal(usuarioId));
+        }
+
+        usuarioRepository.save(usuario);
     }
 
 
@@ -123,15 +131,32 @@ public class GastoService {
 
 
     public Double calcularSaldoTotal(Long usuarioId) {
-        Double mesadaTotal = mesadaService.calcularSaldoTotal(usuarioId);
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
+
         Double gastosTotais = calcularGastoTotal(usuarioId);
+
+        if (usuario.getRole() == UsuarioRole.ADMIN) {
+            return usuario.getSaldoTotal() - gastosTotais;
+        }
+
+        Double mesadaTotal = mesadaService.calcularSaldoTotal(usuarioId);
+
         return mesadaTotal - gastosTotais;
+
+
     }
 
 
     private void atualizarSaldo(Long usuarioId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
+
+        if (usuario.getRole() == UsuarioRole.ADMIN) {
+
+            return;
+        }
+
 
         usuario.setSaldoTotal(calcularSaldoTotal(usuarioId));
 
@@ -149,7 +174,6 @@ public class GastoService {
             throw new GastoNaoEncontradoException("Nenhum gasto encontrado para este usuário.");
         }
 
-        // Agrupa os gastos por mês e ano
         Map<YearMonth, GastoTotalPorCategoriaMensalDTO> gastosPorMes = gastos.stream()
                 .collect(Collectors.groupingBy(
                         gasto -> YearMonth.from(gasto.getDataGasto()),
@@ -198,7 +222,6 @@ public class GastoService {
 
         return new GastoTotalCategoriaDTO(totalEssencial, totalNaoEssencial);
     }
-
 
 
 }
