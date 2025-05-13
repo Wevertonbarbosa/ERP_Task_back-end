@@ -14,6 +14,7 @@ import br.com.happydo.repository.TarefaRepository;
 import br.com.happydo.repository.UsuarioRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,15 +50,19 @@ public class UsuarioService {
             throw new ConflitoEmailException("Já existe um usuário com este email.");
         }
 
+        String senhaCriptografada = new BCryptPasswordEncoder().encode(usuarioCadastroDTO.senha());
+
+
         Usuario usuario = new Usuario();
         BeanUtils.copyProperties(usuarioCadastroDTO, usuario);
+        usuario.setSenha(senhaCriptografada);
 
         if (usuarioCadastroDTO.role() == UsuarioRole.USER) {
             Usuario admin = usuarioRepository.findById(adminId)
                     .orElseThrow(() -> new UsuarioNaoEncontradoException("Admin não encontrado."));
             usuario.setAdminResponsavel(admin);
             usuario.setSaldoTotal(0.0);
-        }else{
+        } else {
             usuario.setSaldoTotal(1000000.0);
         }
 
@@ -119,7 +124,10 @@ public class UsuarioService {
 
             BeanUtils.copyProperties(usuarioCadastroDTO, usuarioExistente, "usuarioId", "adminResponsavel", "saldoTotal");
 
+            String senhaCriptografada = new BCryptPasswordEncoder().encode(usuarioCadastroDTO.senha());
+
             usuarioExistente.setUsuarioId(id);
+            usuarioExistente.setSenha(senhaCriptografada);
             usuarioExistente.setAdminResponsavel(adminResponsavel);
             usuarioExistente.setSaldoTotal(saldoTotalExistente);
 

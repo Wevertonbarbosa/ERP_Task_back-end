@@ -2,6 +2,7 @@ package br.com.happydo.controller;
 
 import br.com.happydo.dto.GastoDTO;
 import br.com.happydo.dto.GastoTotalCategoriaDTO;
+import br.com.happydo.dto.GastoTotalPorCategoriaAnualDTO;
 import br.com.happydo.dto.GastoTotalPorCategoriaMensalDTO;
 import br.com.happydo.exception.GastoNaoEncontradoException;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
@@ -48,6 +49,20 @@ public class GastoController {
         try {
             List<GastoTotalPorCategoriaMensalDTO> gastosTotais = gastoService.calcularGastoTotalPorCategoriaMensal(usuarioId);
             return ResponseEntity.ok(gastosTotais);
+        } catch (UsuarioNaoEncontradoException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (GastoNaoEncontradoException e) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+    }
+
+    @GetMapping("/{usuarioId}/gastos/categoria/anual/{ano}")
+    public ResponseEntity<GastoTotalPorCategoriaAnualDTO> calcularGastoTotalPorCategoriaAnual(
+            @PathVariable Long usuarioId,
+            @PathVariable int ano) {
+        try {
+            GastoTotalPorCategoriaAnualDTO gastoTotal = gastoService.calcularGastoTotalPorCategoriaAnual(usuarioId, ano);
+            return ResponseEntity.ok(gastoTotal);
         } catch (UsuarioNaoEncontradoException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         } catch (GastoNaoEncontradoException e) {

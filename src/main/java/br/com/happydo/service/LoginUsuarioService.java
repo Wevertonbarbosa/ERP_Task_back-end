@@ -9,6 +9,7 @@ import br.com.happydo.model.Usuario;
 import br.com.happydo.model.UsuarioRole;
 import br.com.happydo.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -19,13 +20,17 @@ public class LoginUsuarioService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+
     public UsuarioExibitionDTO autenticarUsuario(LoginUsuarioDTO loginDTO) {
 
         Optional<Usuario> usuarioOptional = usuarioRepository.findByEmail(loginDTO.email());
         if (usuarioOptional.isPresent()) {
             Usuario usuario = usuarioOptional.get();
 
-            if (usuario.getSenha().equals(loginDTO.senha())) {
+            if (passwordEncoder.matches(loginDTO.senha(), usuario.getSenha())) {
 
                 return new UsuarioExibitionDTO(usuario);
             } else {

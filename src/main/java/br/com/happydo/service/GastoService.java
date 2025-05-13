@@ -2,6 +2,7 @@ package br.com.happydo.service;
 
 import br.com.happydo.dto.GastoDTO;
 import br.com.happydo.dto.GastoTotalCategoriaDTO;
+import br.com.happydo.dto.GastoTotalPorCategoriaAnualDTO;
 import br.com.happydo.dto.GastoTotalPorCategoriaMensalDTO;
 import br.com.happydo.exception.GastoNaoEncontradoException;
 import br.com.happydo.exception.SaldoInsuficienteException;
@@ -221,6 +222,32 @@ public class GastoService {
                 .sum();
 
         return new GastoTotalCategoriaDTO(totalEssencial, totalNaoEssencial);
+    }
+
+
+    public GastoTotalPorCategoriaAnualDTO calcularGastoTotalPorCategoriaAnual(Long usuarioId, int ano) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+
+        List<Gasto> gastos = gastoRepository.findByUsuarioUsuarioId(usuarioId);
+
+        if (gastos.isEmpty()) {
+            throw new GastoNaoEncontradoException("Nenhum gasto encontrado para este usuário.");
+        }
+
+        double totalEssencial = gastos.stream()
+                .filter(g -> g.getCategoria() == CategoriaGasto.ESSENCIAL && g.getDataGasto().getYear() == ano)
+                .mapToDouble(Gasto::getValor)
+                .sum();
+
+        double totalNaoEssencial = gastos.stream()
+                .filter(g -> g.getCategoria() == CategoriaGasto.NAO_ESSENCIAL && g.getDataGasto().getYear() == ano)
+                .mapToDouble(Gasto::getValor)
+                .sum();
+
+        double totalAnual = totalEssencial + totalNaoEssencial;
+
+        return new GastoTotalPorCategoriaAnualDTO(ano, totalEssencial, totalNaoEssencial, totalAnual);
     }
 
 
