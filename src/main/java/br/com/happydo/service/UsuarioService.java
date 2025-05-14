@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,25 +45,51 @@ public class UsuarioService {
                 .toList();
     }
 
+    private String gerarSenhaAleatoria(int tamanho) {
+        String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder senha = new StringBuilder(tamanho);
+
+        for (int i = 0; i < tamanho; i++) {
+            int index = random.nextInt(caracteres.length());
+            senha.append(caracteres.charAt(index));
+        }
+
+        return senha.toString();
+    }
+
 
     public UsuarioExibitionDTO criarUsuario(UsuarioCadastroDTO usuarioCadastroDTO, Long adminId) {
         if (usuarioRepository.existsByEmail(usuarioCadastroDTO.email())) {
             throw new ConflitoEmailException("Já existe um usuário com este email.");
         }
 
-        String senhaCriptografada = new BCryptPasswordEncoder().encode(usuarioCadastroDTO.senha());
-
-
         Usuario usuario = new Usuario();
         BeanUtils.copyProperties(usuarioCadastroDTO, usuario);
-        usuario.setSenha(senhaCriptografada);
+
 
         if (usuarioCadastroDTO.role() == UsuarioRole.USER) {
+
             Usuario admin = usuarioRepository.findById(adminId)
                     .orElseThrow(() -> new UsuarioNaoEncontradoException("Admin não encontrado."));
+
+
+            String senhaAleatoria = gerarSenhaAleatoria(8);
+            String senhaCriptografadaUser = new BCryptPasswordEncoder().encode(senhaAleatoria);
+            usuario.setSenha(senhaCriptografadaUser);
+
+
             usuario.setAdminResponsavel(admin);
             usuario.setSaldoTotal(0.0);
+
+
+            String assunto = "Cadastro confirmado - HappyDo";
+            String mensagem = "Seu cadastro foi criado! \nEssa é sua senha gerada pelo nosso sistema:\n\n" + senhaAleatoria;
+            emailUsuarioService.enviarEmail(usuarioCadastroDTO.email(), assunto, mensagem);
         } else {
+
+            String senhaCriptografada = new BCryptPasswordEncoder().encode(usuarioCadastroDTO.senha());
+            usuario.setSenha(senhaCriptografada);
             usuario.setSaldoTotal(1000000.0);
         }
 
