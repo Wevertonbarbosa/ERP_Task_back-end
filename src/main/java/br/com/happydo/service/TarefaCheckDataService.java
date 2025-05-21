@@ -8,6 +8,7 @@ import br.com.happydo.exception.TarefaJaSinalizada;
 import br.com.happydo.exception.TarefaNaoEncontradaException;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
 import br.com.happydo.model.*;
+import br.com.happydo.repository.MesadaRepository;
 import br.com.happydo.repository.TarefaCheckDataRepository;
 import br.com.happydo.repository.TarefaRepository;
 import br.com.happydo.repository.UsuarioRepository;
@@ -15,7 +16,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TarefaCheckDataService {
@@ -29,29 +33,31 @@ public class TarefaCheckDataService {
     @Autowired
     private TarefaRepository tarefaRepository;
 
+    @Autowired
+    private MesadaRepository mesadaRepository;
+
+    @Autowired
+    private MesadaService mesadaService;
+
+
     public List<TarefaSinalizadaConcluidaDTO> tarefaSinalizada(Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
         List<TarefaCheckData> tarefasSinalizadas = tarefaCheckDataRepository.findTarefasSinalizadasPorUsuario(usuarioId);
 
-        return tarefasSinalizadas.stream()
-                .map(TarefaSinalizadaConcluidaDTO::new)
-                .toList();
+        return tarefasSinalizadas.stream().map(TarefaSinalizadaConcluidaDTO::new).toList();
     }
 
 
     public TarefaCheckDataDTO UsuarioSinalizarConclusaoTarefa(Long tarefaId, Long usuarioId, TarefaCheckDataDTO tarefaCheckDataDTO) {
 
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
         if (!usuario.getRole().equals(UsuarioRole.USER)) {
             throw new AcessoNegadoException("Apenas usuários USER podem sinalizar a conclusão de tarefas.");
         }
 
-        Tarefa tarefa = tarefaRepository.findById(tarefaId)
-                .orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
+        Tarefa tarefa = tarefaRepository.findById(tarefaId).orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
 
         if (!tarefa.getResponsavel().getUsuarioId().equals(usuarioId)) {
             throw new AcessoNegadoException("Você não tem permissão para sinalizar esta tarefa.");
@@ -70,19 +76,16 @@ public class TarefaCheckDataService {
     }
 
     public void atualizarSinalizarConclusaoTarefa(Long checkId, Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
         if (!usuario.getRole().equals(UsuarioRole.USER)) {
             throw new AcessoNegadoException("Apenas usuários USER podem sinalizar a conclusão de tarefas.");
         }
 
-        TarefaCheckData tarefaCheckData = tarefaCheckDataRepository.findById(checkId)
-                .orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
+        TarefaCheckData tarefaCheckData = tarefaCheckDataRepository.findById(checkId).orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
 
         if (!tarefaCheckData.getTarefa().getResponsavel().getUsuarioId().equals(usuarioId)) {
-            throw new AcessoNegadoException("Somente usuário responsável pela tarefa pode atualizar a " +
-                    "sinalização da conclusão da tarefa.");
+            throw new AcessoNegadoException("Somente usuário responsável pela tarefa pode atualizar a " + "sinalização da conclusão da tarefa.");
         }
 
         if (tarefaCheckData.isSinalizadaUsuario()) {
@@ -96,16 +99,14 @@ public class TarefaCheckDataService {
     }
 
 
-    public void checkAdminTask( Long idTask, Long adminId, boolean conlcuirTarefa) {
-        Usuario usuario = usuarioRepository.findById(adminId)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+    public void checkAdminTask(Long idTask, Long adminId, boolean conlcuirTarefa) {
+        Usuario usuario = usuarioRepository.findById(adminId).orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
         if (!usuario.getRole().equals(UsuarioRole.ADMIN)) {
             throw new AcessoNegadoException("Apenas usuários ADMIN pode concluir a tarefa diretamente.");
         }
 
-        Tarefa tarefa = tarefaRepository.findById(idTask)
-                .orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
+        Tarefa tarefa = tarefaRepository.findById(idTask).orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
 
 
         TarefaCheckData tarefaCheckData = new TarefaCheckData();
@@ -130,6 +131,7 @@ public class TarefaCheckDataService {
             }
             usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() - 1);
             usuarioRepository.save(usuarioResponsavel);
+
         } else {
             tarefaCheckData.setSinalizadaUsuario(false);
             tarefaCheckData.setConcluida(false);
@@ -155,19 +157,16 @@ public class TarefaCheckDataService {
 
 
     public void checkTask(Long checkId, Long adminId, boolean aceitaConclusao) {
-        Usuario usuario = usuarioRepository.findById(adminId)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+        Usuario usuario = usuarioRepository.findById(adminId).orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
         if (!usuario.getRole().equals(UsuarioRole.ADMIN)) {
-            throw new AcessoNegadoException("Apenas usuários que é ADMIN e criador da tarefa que podem confirmar a conclusão de tarefas.");
+            throw new AcessoNegadoException("Apenas usuários ADMIN podem confirmar a conclusão de tarefas.");
         }
 
-        TarefaCheckData tarefaCheckData = tarefaCheckDataRepository.findById(checkId)
-                .orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
+        TarefaCheckData tarefaCheckData = tarefaCheckDataRepository.findById(checkId).orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
 
         if (!tarefaCheckData.getTarefa().getCriador().getUsuarioId().equals(adminId)) {
-            throw new AcessoNegadoException("Você não tem permissão para confirmar esta tarefa, " +
-                    "pois não é o criador da tarefa.");
+            throw new AcessoNegadoException("Você não tem permissão para confirmar esta tarefa.");
         }
 
         tarefaCheckData.setId(checkId);
@@ -180,30 +179,42 @@ public class TarefaCheckDataService {
             tarefaCheckData.setConcluida(true);
             tarefaCheckData.getTarefa().setStatus(StatusTarefa.CONCLUIDO);
 
-            if (usuarioResponsavel.getTarefasConcluidas() == null) {
-                usuarioResponsavel.setTarefasConcluidas(0);
+            Integer pontuacaoTarefa = tarefaCheckData.getTarefa().getPontuacao();
+            if (pontuacaoTarefa == null) pontuacaoTarefa = 0;
+
+            // Atualiza pontuação acumulada do usuário
+            if (usuarioResponsavel.getPontuacaoAcumulada() == null) {
+                usuarioResponsavel.setPontuacaoAcumulada(0);
             }
+            usuarioResponsavel.setPontuacaoAcumulada(usuarioResponsavel.getPontuacaoAcumulada() + pontuacaoTarefa);
+
+            // Atualiza contadores de tarefas
+            if (usuarioResponsavel.getTarefasConcluidas() == null) usuarioResponsavel.setTarefasConcluidas(0);
             usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() + 1);
 
-            if (usuarioResponsavel.getTarefasPendentes() == null) {
-                usuarioResponsavel.setTarefasPendentes(0);
-            }
+            if (usuarioResponsavel.getTarefasPendentes() == null) usuarioResponsavel.setTarefasPendentes(0);
             usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() - 1);
+
+
+            mesadaService.adicionarPontosConcluidosNaMesada(usuarioResponsavel.getUsuarioId(), pontuacaoTarefa);
+
+
             usuarioRepository.save(usuarioResponsavel);
 
+
         } else {
+            // Rejeição da tarefa
             tarefaCheckData.setSinalizadaUsuario(false);
             tarefaCheckData.setConcluida(false);
             tarefaCheckData.getTarefa().setStatus(StatusTarefa.ANDAMENTO);
 
             if (usuarioResponsavel.getTarefasConcluidas() == null || usuarioResponsavel.getTarefasConcluidas() <= 0) {
                 usuarioResponsavel.setTarefasConcluidas(0);
+            } else {
+                usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1);
             }
-            usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1);
 
-            if (usuarioResponsavel.getTarefasPendentes() == null) {
-                usuarioResponsavel.setTarefasPendentes(0);
-            }
+            if (usuarioResponsavel.getTarefasPendentes() == null) usuarioResponsavel.setTarefasPendentes(0);
             usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() + 1);
 
             usuarioRepository.save(usuarioResponsavel);
@@ -215,19 +226,16 @@ public class TarefaCheckDataService {
 
     public void deletarConfirmacaoTarefa(Long adminId, Long checkId) {
 
-        Usuario admin = usuarioRepository.findById(adminId)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+        Usuario admin = usuarioRepository.findById(adminId).orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
 
         if (!admin.getRole().equals(UsuarioRole.ADMIN)) {
             throw new AcessoNegadoException("Apenas usuários ADMIN podem deletar tarefas.");
         }
 
-        TarefaCheckData tarefaCheckData = tarefaCheckDataRepository.findById(checkId)
-                .orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
+        TarefaCheckData tarefaCheckData = tarefaCheckDataRepository.findById(checkId).orElseThrow(() -> new TarefaNaoEncontradaException("Tarefa não encontrada."));
 
         if (!tarefaCheckData.getTarefa().getCriador().getUsuarioId().equals(adminId)) {
-            throw new AcessoNegadoException("Você não é o criador dessa tarefa" +
-                    " por isso não pode excluir essa conclusão!");
+            throw new AcessoNegadoException("Você não é o criador dessa tarefa" + " por isso não pode excluir essa conclusão!");
         }
 
         Usuario usuarioResponsavel = tarefaCheckData.getUsuario_id();

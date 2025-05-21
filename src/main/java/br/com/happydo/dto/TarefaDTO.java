@@ -33,6 +33,10 @@ public record TarefaDTO(
 
         List<String> diasSemana,
 
+
+        Integer pontuacao,
+
+
         Long criadorId,
         Long responsavelId
 
@@ -50,6 +54,7 @@ public record TarefaDTO(
                 tarefa.getDataInicio(),
                 tarefa.getDataFim(),
                 tarefa.getDiasSemanaList(),
+                tarefa.getPontuacao(),
                 tarefa.getCriador().getUsuarioId(),
                 tarefa.getResponsavel().getUsuarioId()
 

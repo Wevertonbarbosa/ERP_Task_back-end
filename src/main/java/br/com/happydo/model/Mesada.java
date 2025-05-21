@@ -31,6 +31,16 @@ public class Mesada {
     @Column(nullable = false)
     private LocalDate dataRecebimento;
 
+    @Column(name = "total_pontos_periodo")
+    private Integer totalPontosPeriodo = 0;
 
+    @Column(name = "pontos_concluidos")
+    private Integer pontosConcluidos;
+
+    @Column(name = "mes_referencia")
+    private Integer mesReferencia;
+
+    @Column(name = "ano_referencia")
+    private Integer anoReferencia;
 
 }

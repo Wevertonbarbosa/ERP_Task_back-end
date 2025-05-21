@@ -56,6 +56,10 @@ public class Tarefa {
     private String diasSemana;
 
 
+    private Integer pontuacao;
+
+
+
     public List<String> getDiasSemanaList() {
         if (diasSemana != null) {
             return Arrays.asList(diasSemana.split(","));

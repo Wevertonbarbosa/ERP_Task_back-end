@@ -10,8 +10,9 @@ public record UsuarioExibitionDTO(
         UsuarioRole role,
         Integer tarefasConcluidas,
         Integer tarefasPendentes,
-        Double saldoTotal
-
+        Double saldoTotal,
+        Integer pontuacaoAcumulada,
+        Double valorMesadaMensal
 
 ) {
     public UsuarioExibitionDTO(Usuario usuario) {
@@ -22,7 +23,9 @@ public record UsuarioExibitionDTO(
                 usuario.getRole(),
                 usuario.getTarefasConcluidas(),
                 usuario.getTarefasPendentes(),
-                usuario.getSaldoTotal()
+                usuario.getSaldoTotal(),
+                usuario.getPontuacaoAcumulada(),
+                usuario.getValorMesadaMensal()
         );
     }
 

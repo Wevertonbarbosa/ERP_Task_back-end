@@ -39,12 +39,22 @@ public class TarefaService {
             throw new ConflitoDatasException("A data de início não pode ser maior que a data de fim.");
         }
 
-
         Tarefa tarefa = new Tarefa();
         BeanUtils.copyProperties(tarefaDTO, tarefa);
         tarefa.setCriador(criador);
         tarefa.setResponsavel(responsavel);
         tarefa.setStatus(StatusTarefa.ANDAMENTO);
+
+        // Regra: pontuação apenas se o responsável for USER
+        if (responsavel.getRole().equals(UsuarioRole.USER)) {
+            if (tarefaDTO.pontuacao() == null || tarefaDTO.pontuacao() <= 0) {
+                throw new PontuacaoInvalidaException("A pontuação da tarefa deve ser maior que zero para mentorado.");
+            }
+            tarefa.setPontuacao(tarefaDTO.pontuacao());
+        } else {
+            tarefa.setPontuacao(null); // ou tarefa.setPontuacao(0);
+        }
+
 
         responsavel.setTarefasPendentes(responsavel.getTarefasPendentes() + 1);
         usuarioRepository.save(responsavel);
@@ -117,6 +127,17 @@ public class TarefaService {
             BeanUtils.copyProperties(tarefaDTO, tarefa);
             tarefa.setId(tarefaId);
 
+            // Regras da pontuação conforme perfil do responsável
+            Usuario responsavel = tarefa.getResponsavel();
+            if (responsavel != null && responsavel.getRole().equals(UsuarioRole.USER)) {
+                if (tarefaDTO.pontuacao() == null || tarefaDTO.pontuacao() <= 0) {
+                    throw new PontuacaoInvalidaException("A pontuação da tarefa deve ser maior que zero para mentorado.");
+                }
+                tarefa.setPontuacao(tarefaDTO.pontuacao());
+            } else {
+                tarefa.setPontuacao(null);
+            }
+
 
             if (tarefaDTO.frequencia() == FrequenciaTarefa.SEMANAL) {
 
@@ -159,6 +180,9 @@ public class TarefaService {
             usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() - 1);
         } else {
             usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1);
+            Integer pontuacaoTarefa = tarefa.getPontuacao();
+            usuarioResponsavel.setPontuacaoAcumulada(usuarioResponsavel.getPontuacaoAcumulada() - pontuacaoTarefa);
+
         }
         usuarioRepository.save(usuarioResponsavel);
 

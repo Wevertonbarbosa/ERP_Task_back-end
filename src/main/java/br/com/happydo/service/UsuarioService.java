@@ -81,6 +81,7 @@ public class UsuarioService {
 
             usuario.setAdminResponsavel(admin);
             usuario.setSaldoTotal(0.0);
+            usuario.setValorMesadaMensal(0.0);
 
 
             String assunto = "Cadastro confirmado - HappyDo";
@@ -91,6 +92,7 @@ public class UsuarioService {
             String senhaCriptografada = new BCryptPasswordEncoder().encode(usuarioCadastroDTO.senha());
             usuario.setSenha(senhaCriptografada);
             usuario.setSaldoTotal(1000000.0);
+            usuario.setValorMesadaMensal(null);
         }
 
 

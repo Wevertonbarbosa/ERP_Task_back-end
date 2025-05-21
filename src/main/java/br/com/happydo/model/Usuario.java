@@ -40,6 +40,12 @@ public class Usuario {
     @Column(name = "saldo_total", nullable = false)
     private Double saldoTotal = 0.0;
 
+    @Column(name = "pontuacao_acumulada")
+    private Integer pontuacaoAcumulada = 0;
+
+    @Column(name = "valor_mesada_mensal")
+    private Double valorMesadaMensal = 0.0;
+
     @OneToMany(mappedBy = "criador")
     private List<Tarefa> tarefasCriadas;
 
