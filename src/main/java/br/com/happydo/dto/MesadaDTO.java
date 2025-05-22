@@ -12,7 +12,10 @@ public record MesadaDTO(
         Integer totalPontosPeriodo,
         Integer pontosConcluidos,
         Integer mesReferencia,
-        Integer anoReferencia
+        Integer anoReferencia,
+        Double percentualConclusao,
+        Double valorProporcional,
+        Boolean mesadaRecebida
 ) {
 
     public MesadaDTO(Mesada mesada) {
@@ -24,7 +27,10 @@ public record MesadaDTO(
                 mesada.getTotalPontosPeriodo(),
                 mesada.getPontosConcluidos(),
                 mesada.getMesReferencia(),
-                mesada.getAnoReferencia()
+                mesada.getAnoReferencia(),
+                mesada.getPercentualConclusao(),
+                mesada.getValorProporcional(),
+                mesada.getMesadaRecebida()
         );
     }
 }

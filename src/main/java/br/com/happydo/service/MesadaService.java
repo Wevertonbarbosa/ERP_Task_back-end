@@ -1,6 +1,8 @@
 package br.com.happydo.service;
 
 import br.com.happydo.dto.MesadaDTO;
+import br.com.happydo.dto.PainelDesempenhoDTO;
+import br.com.happydo.exception.MesadaJaAddNoMes;
 import br.com.happydo.exception.MesadaNaoEncontradaException;
 import br.com.happydo.exception.MesadaSemPermissaoException;
 import br.com.happydo.exception.UsuarioNaoEncontradoException;
@@ -37,35 +39,42 @@ public class MesadaService {
         // Verifica se já existe uma mesada para o mesmo mês e ano
         Optional<Mesada> mesadaExistente = mesadaRepository.findByUsuarioAndMes(usuarioId, ano, mes);
 
-        Mesada mesada = mesadaExistente.orElse(new Mesada());
-        mesada.setUsuario(usuario);
-        mesada.setAnoReferencia(ano);
-        mesada.setMesReferencia(mes);
-        mesada.setTotalPontosPeriodo(mesadaDTO.totalPontosPeriodo());
-        mesada.setPontosConcluidos(usuario.getPontuacaoAcumulada());
-        mesada.setDataRecebimento(LocalDate.now());
+        if (mesadaExistente.isEmpty()) {
+            Mesada mesada = new Mesada();
+            mesada.setUsuario(usuario);
+            mesada.setAnoReferencia(ano);
+            mesada.setMesReferencia(mes);
+            mesada.setTotalPontosPeriodo(mesadaDTO.totalPontosPeriodo());
+            mesada.setPontosConcluidos(usuario.getPontuacaoAcumulada());
+            mesada.setDataRecebimento(LocalDate.now());
+            mesada.setPercentualConclusao(0.0);
+            mesada.setValorProporcional(0.0);
+            mesada.setMesadaRecebida(false);
+
+            // Usa o valor da mesada vindo do DTO (definido pelo mentor)
+            Double valorDefinidoPeloMentor = mesadaDTO.valor() != null ? mesadaDTO.valor() : 0.0;
+
+            Double valorCalculado = calcularValorProporcional(
+                    mesada.getTotalPontosPeriodo(),
+                    mesada.getPontosConcluidos(),
+                    valorDefinidoPeloMentor
+            );
+
+            mesada.setValor(mesadaDTO.valor());
 
 
-        // Usa o valor da mesada vindo do DTO (definido pelo mentor)
-        Double valorDefinidoPeloMentor = mesadaDTO.valor() != null ? mesadaDTO.valor() : 0.0;
+            usuario.setSaldoTotal(valorCalculado);
 
-        Double valorCalculado = calcularValorProporcional(
-                mesada.getTotalPontosPeriodo(),
-                mesada.getPontosConcluidos(),
-                valorDefinidoPeloMentor
-        );
+            usuario.setValorMesadaMensal(mesada.getValor());
 
-        mesada.setValor(mesadaDTO.valor());
+            Mesada mesadaSalva = mesadaRepository.save(mesada);
+            usuarioRepository.save(usuario);
 
+            return new MesadaDTO(mesadaSalva);
+        } else {
+            throw new MesadaJaAddNoMes("A mesada desse mês para esse usuários já foi add.");
+        }
 
-        usuario.setSaldoTotal(valorCalculado);
-
-        usuario.setValorMesadaMensal(mesada.getValor());
-
-        usuarioRepository.save(usuario);
-        Mesada mesadaSalva = mesadaRepository.save(mesada);
-
-        return new MesadaDTO(mesadaSalva);
     }
 
 
@@ -79,25 +88,58 @@ public class MesadaService {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
 
-        Double valorMensal = usuario.getValorMesadaMensal() != null ? usuario.getValorMesadaMensal() : 0.0;
+        LocalDate hoje = LocalDate.now();
+        int ano = hoje.getYear();
+        int mes = hoje.getMonthValue();
+
+        Optional<Mesada> mesadaOptional = mesadaRepository.findByUsuarioAndMes(usuarioId, ano, mes);
+
+        if (mesadaOptional.isPresent()) {
+            Mesada mesadaExistente = mesadaOptional.get();
+
+            int pontosAtuais = mesadaExistente.getPontosConcluidos() != null ? mesadaExistente.getPontosConcluidos() : 0;
+
+            mesadaExistente.setPontosConcluidos(pontosAtuais + pontosTarefa);
+
+
+            mesadaRepository.save(mesadaExistente);
+
+
+        } else {
+            throw new UsuarioNaoEncontradoException("Usuário não encontrado.");
+        }
+
+    }
+
+    //FAZER TESTE DE QUANDO APAGA AS TAREFAS E ETC....-------
+    public void atualizarDesempenhoMesada(Mesada mesada, Double valorMesadaMensal) {
+        int totalPontos = mesada.getTotalPontosPeriodo() != null ? mesada.getTotalPontosPeriodo() : 0;
+        int pontosConcluidos = mesada.getPontosConcluidos() != null ? mesada.getPontosConcluidos() : 0;
+
+        double percentualConclusao = 0.0;
+        double valorProporcional = 0.0;
+
+        if (totalPontos > 0) {
+            percentualConclusao = (pontosConcluidos * 100.0) / totalPontos;
+            valorProporcional = (valorMesadaMensal * pontosConcluidos) / totalPontos;
+        }
+
+        mesada.setPercentualConclusao(percentualConclusao);
+        mesada.setValorProporcional(valorProporcional);
+    }
+
+    public PainelDesempenhoDTO obterPainelDesempenho(Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
 
         LocalDate hoje = LocalDate.now();
         int ano = hoje.getYear();
         int mes = hoje.getMonthValue();
 
-        mesadaRepository.findByUsuarioAndMes(usuarioId, ano, mes).ifPresent(mesada -> {
-            int pontosAtuais = mesada.getPontosConcluidos() != null ? mesada.getPontosConcluidos() : 0;
-            mesada.setPontosConcluidos(pontosAtuais + pontosTarefa);
+        Mesada mesada = mesadaRepository.findByUsuarioAndMes(usuarioId, ano, mes)
+                .orElseThrow(() -> new IllegalStateException("Mesada não encontrada para o usuário neste período."));
 
-            Double novoValor = calcularValorProporcional(
-                    mesada.getTotalPontosPeriodo(),
-                    mesada.getPontosConcluidos(),
-                    valorMensal
-            );
-
-            mesada.setValor(novoValor);
-            mesadaRepository.save(mesada);
-        });
+        return new PainelDesempenhoDTO(mesada);
     }
 
 
@@ -127,6 +169,9 @@ public class MesadaService {
         mesada.setTotalPontosPeriodo(mesadaDTO.totalPontosPeriodo());
 
         mesada.setPontosConcluidos(mesada.getPontosConcluidos());
+        mesada.setMesadaRecebida(mesada.getMesadaRecebida());
+        mesada.setValorProporcional(mesada.getValorProporcional());
+        mesada.setPercentualConclusao(mesada.getPercentualConclusao());
 
         //MES PRECISA SER PREENCHIDO
         mesada.setMesReferencia(mesadaDTO.mesReferencia());
@@ -139,9 +184,9 @@ public class MesadaService {
                 mesadaDTO.valor()
         );
 
-
         mesada.setValor(mesadaDTO.valor());
         mesada.setDataRecebimento(mesadaDTO.dataRecebimento());
+
 
         usuario.setSaldoTotal(usuario.getSaldoTotal() + novoValor);
 
@@ -156,13 +201,20 @@ public class MesadaService {
 
         Usuario usuario = mesada.getUsuario();
 
-        double novoSaldo = usuario.getSaldoTotal() - mesada.getValor();
-        usuario.setSaldoTotal(Math.max(0.0, novoSaldo));
+        if (mesada.getMesadaRecebida().equals(false)) {
+            double novoSaldo = usuario.getSaldoTotal() - mesada.getValor();
+            usuario.setSaldoTotal(Math.max(0.0, novoSaldo));
 
-        usuario.setValorMesadaMensal(Math.max(0.0, novoSaldo));
+            usuario.setValorMesadaMensal(Math.max(0.0, novoSaldo));
 
-        usuarioRepository.save(usuario);
-        mesadaRepository.deleteById(mesadaId);
+            usuarioRepository.save(usuario);
+            mesadaRepository.deleteById(mesadaId);
+
+        } else {
+            throw new MesadaJaAddNoMes("A mesada já foi recebida e não pode mais ser excluída.");
+        }
+
+
     }
 
     public Double calcularSaldoTotal(Long usuarioId) {

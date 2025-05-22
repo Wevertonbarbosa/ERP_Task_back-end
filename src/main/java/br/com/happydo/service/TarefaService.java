@@ -3,6 +3,7 @@ package br.com.happydo.service;
 import br.com.happydo.dto.TarefaDTO;
 import br.com.happydo.exception.*;
 import br.com.happydo.model.*;
+import br.com.happydo.repository.MesadaRepository;
 import br.com.happydo.repository.TarefaRepository;
 import br.com.happydo.repository.UsuarioRepository;
 
@@ -10,6 +11,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -22,6 +24,9 @@ public class TarefaService {
     private TarefaRepository tarefaRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private MesadaRepository mesadaRepository;
 
 
     public TarefaDTO criarTarefa(Long criadorId, Long responsavelId, TarefaDTO tarefaDTO) {
@@ -181,9 +186,28 @@ public class TarefaService {
         } else {
             usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1);
             Integer pontuacaoTarefa = tarefa.getPontuacao();
-            usuarioResponsavel.setPontuacaoAcumulada(usuarioResponsavel.getPontuacaoAcumulada() - pontuacaoTarefa);
 
+
+            int novaPontuacao = usuarioResponsavel.getPontuacaoAcumulada() - pontuacaoTarefa;
+            usuarioResponsavel.setPontuacaoAcumulada(Math.max(novaPontuacao, 0));
+
+            LocalDate hoje = LocalDate.now();
+            int ano = hoje.getYear();
+            int mes = hoje.getMonthValue();
+
+            Optional<Mesada> mesadaOptional = mesadaRepository.findByUsuarioAndMes(usuarioResponsavel.getUsuarioId(), ano, mes);
+
+            if (mesadaOptional.isPresent()) {
+                Mesada mesadaExistente = mesadaOptional.get();
+
+                int pontosAtuais = mesadaExistente.getPontosConcluidos() != null ? mesadaExistente.getPontosConcluidos() : 0;
+                int novosPontos = pontosAtuais - pontuacaoTarefa;
+                mesadaExistente.setPontosConcluidos(Math.max(novosPontos, 0));
+
+                mesadaRepository.save(mesadaExistente);
+            }
         }
+
         usuarioRepository.save(usuarioResponsavel);
 
 

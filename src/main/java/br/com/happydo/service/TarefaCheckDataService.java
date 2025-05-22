@@ -186,7 +186,9 @@ public class TarefaCheckDataService {
             if (usuarioResponsavel.getPontuacaoAcumulada() == null) {
                 usuarioResponsavel.setPontuacaoAcumulada(0);
             }
+
             usuarioResponsavel.setPontuacaoAcumulada(usuarioResponsavel.getPontuacaoAcumulada() + pontuacaoTarefa);
+
 
             // Atualiza contadores de tarefas
             if (usuarioResponsavel.getTarefasConcluidas() == null) usuarioResponsavel.setTarefasConcluidas(0);
@@ -195,12 +197,30 @@ public class TarefaCheckDataService {
             if (usuarioResponsavel.getTarefasPendentes() == null) usuarioResponsavel.setTarefasPendentes(0);
             usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() - 1);
 
-
             mesadaService.adicionarPontosConcluidosNaMesada(usuarioResponsavel.getUsuarioId(), pontuacaoTarefa);
 
 
-            usuarioRepository.save(usuarioResponsavel);
+            LocalDate hoje = LocalDate.now();
+            int ano = hoje.getYear();
+            int mes = hoje.getMonthValue();
 
+            Mesada mesada = mesadaRepository.findByUsuarioAndMes(usuarioResponsavel.getUsuarioId(), ano, mes)
+                    .orElseThrow(() -> new IllegalStateException("Mesada não encontrada para o usuário neste período."));
+
+            // Atualiza percentual e valor proporcional
+            mesadaService.atualizarDesempenhoMesada(mesada, usuarioResponsavel.getValorMesadaMensal());
+
+
+            if (mesada.getPontosConcluidos() >= mesada.getTotalPontosPeriodo()) {
+                mesada.setMesadaRecebida(true);
+                usuarioResponsavel.setSaldoTotal(mesada.getValor());
+                usuarioResponsavel.setPontuacaoAcumulada(0);
+                usuarioResponsavel.setValorMesadaMensal(0.0);
+            }
+
+
+            usuarioRepository.save(usuarioResponsavel);
+            mesadaRepository.save(mesada);
 
         } else {
             // Rejeição da tarefa

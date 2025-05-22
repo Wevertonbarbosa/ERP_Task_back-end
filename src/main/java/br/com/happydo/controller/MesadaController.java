@@ -1,6 +1,7 @@
 package br.com.happydo.controller;
 
 import br.com.happydo.dto.MesadaDTO;
+import br.com.happydo.dto.PainelDesempenhoDTO;
 import br.com.happydo.service.MesadaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,11 @@ public class MesadaController {
         return ResponseEntity.ok(saldoTotal);
     }
 
+    @GetMapping("/painel-desempenho/{usuarioId}")
+    public ResponseEntity<PainelDesempenhoDTO> getPainelDesempenho(@PathVariable Long usuarioId) {
+        PainelDesempenhoDTO painel = mesadaService.obterPainelDesempenho(usuarioId);
+        return ResponseEntity.ok(painel);
+    }
 
 
     @PostMapping("/{usuarioId}")

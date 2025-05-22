@@ -43,4 +43,14 @@ public class Mesada {
     @Column(name = "ano_referencia")
     private Integer anoReferencia;
 
+    @Column(name = "percentual_conclusao")
+    private Double percentualConclusao; // ex: 72.5 (%)
+
+    @Column(name = "valor_proporcional")
+    private Double valorProporcional;
+
+    @Column(name = "mesada_recebida")
+    private Boolean mesadaRecebida;
+
+
 }
