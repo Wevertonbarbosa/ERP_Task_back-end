@@ -28,6 +28,9 @@ public class TarefaService {
     @Autowired
     private MesadaRepository mesadaRepository;
 
+    @Autowired
+    private MesadaService mesadaService;
+
 
     public TarefaDTO criarTarefa(Long criadorId, Long responsavelId, TarefaDTO tarefaDTO) {
         Usuario criador = usuarioRepository.findById(criadorId)
@@ -204,7 +207,13 @@ public class TarefaService {
                 int novosPontos = pontosAtuais - pontuacaoTarefa;
                 mesadaExistente.setPontosConcluidos(Math.max(novosPontos, 0));
 
+                mesadaService.atualizarDesempenhoMesada(
+                        mesadaExistente,
+                        usuarioResponsavel.getValorMesadaMensal()
+                );
+
                 mesadaRepository.save(mesadaExistente);
+
             }
         }
 

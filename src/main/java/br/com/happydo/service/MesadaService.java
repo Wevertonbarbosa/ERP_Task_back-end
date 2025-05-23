@@ -111,7 +111,6 @@ public class MesadaService {
 
     }
 
-    //FAZER TESTE DE QUANDO APAGA AS TAREFAS E ETC....-------
     public void atualizarDesempenhoMesada(Mesada mesada, Double valorMesadaMensal) {
         int totalPontos = mesada.getTotalPontosPeriodo() != null ? mesada.getTotalPontosPeriodo() : 0;
         int pontosConcluidos = mesada.getPontosConcluidos() != null ? mesada.getPontosConcluidos() : 0;
@@ -137,7 +136,7 @@ public class MesadaService {
         int mes = hoje.getMonthValue();
 
         Mesada mesada = mesadaRepository.findByUsuarioAndMes(usuarioId, ano, mes)
-                .orElseThrow(() -> new IllegalStateException("Mesada não encontrada para o usuário neste período."));
+                .orElseThrow(() -> new MesadaNaoEncontradaException("Mesada não encontrada para o usuário neste período."));
 
         return new PainelDesempenhoDTO(mesada);
     }
