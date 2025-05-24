@@ -53,11 +53,21 @@ public class TarefaService {
         tarefa.setResponsavel(responsavel);
         tarefa.setStatus(StatusTarefa.ANDAMENTO);
 
-        // Regra: pontuação apenas se o responsável for USER
         if (responsavel.getRole().equals(UsuarioRole.USER)) {
+
+            LocalDate hoje = LocalDate.now();
+            int anoAtual = hoje.getYear();
+            int mesAtual = hoje.getMonthValue();
+
+            Optional<Mesada> mesadaOptional = mesadaRepository.findByUsuarioAndMes(responsavel.getUsuarioId(), anoAtual, mesAtual);
+            if (mesadaOptional.isEmpty()) {
+                throw new SemMesadaCadastradaException("Mentorado precisa de uma mesada cadastrada para receber tarefas.");
+            }
+
             if (tarefaDTO.pontuacao() == null || tarefaDTO.pontuacao() <= 0) {
                 throw new PontuacaoInvalidaException("A pontuação da tarefa deve ser maior que zero para mentorado.");
             }
+
             tarefa.setPontuacao(tarefaDTO.pontuacao());
         } else {
             tarefa.setPontuacao(null); // ou tarefa.setPontuacao(0);

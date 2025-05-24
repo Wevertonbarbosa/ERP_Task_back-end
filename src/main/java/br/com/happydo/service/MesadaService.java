@@ -200,7 +200,10 @@ public class MesadaService {
 
         Usuario usuario = mesada.getUsuario();
 
-        if (mesada.getMesadaRecebida().equals(false)) {
+//       -------------------- AJUSTAR A FUNCAO ABAIXO -------------------------------
+
+
+//        if (mesada.getMesadaRecebida().equals(false)) {
             double novoSaldo = usuario.getSaldoTotal() - mesada.getValor();
             usuario.setSaldoTotal(Math.max(0.0, novoSaldo));
 
@@ -209,9 +212,9 @@ public class MesadaService {
             usuarioRepository.save(usuario);
             mesadaRepository.deleteById(mesadaId);
 
-        } else {
-            throw new MesadaJaAddNoMes("A mesada já foi recebida e não pode mais ser excluída.");
-        }
+//        } else {
+//            throw new MesadaJaAddNoMes("A mesada já foi recebida e não pode mais ser excluída.");
+//        }
 
 
     }
