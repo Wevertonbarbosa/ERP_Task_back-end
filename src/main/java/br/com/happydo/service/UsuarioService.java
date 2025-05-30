@@ -82,7 +82,8 @@ public class UsuarioService {
             usuario.setAdminResponsavel(admin);
             usuario.setSaldoTotal(0.0);
             usuario.setValorMesadaMensal(0.0);
-
+            usuario.setMesadaAtiva(false);
+            usuario.setPrimeiroAcesso(true);
 
             String assunto = "Cadastro confirmado - HappyDo";
             String mensagem = "Seu cadastro foi criado! \nEssa é sua senha gerada pelo nosso sistema:\n\n" + senhaAleatoria;
@@ -159,6 +160,9 @@ public class UsuarioService {
             usuarioExistente.setSenha(senhaCriptografada);
             usuarioExistente.setAdminResponsavel(adminResponsavel);
             usuarioExistente.setSaldoTotal(saldoTotalExistente);
+
+            usuarioExistente.setMesadaAtiva(usuarioExistente.getMesadaAtiva());
+            usuarioExistente.setPrimeiroAcesso(usuarioExistente.getPrimeiroAcesso());
 
             return new UsuarioExibitionDTO(usuarioRepository.save(usuarioExistente));
         } else {

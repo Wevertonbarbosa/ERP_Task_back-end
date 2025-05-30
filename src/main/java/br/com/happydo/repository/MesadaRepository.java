@@ -22,4 +22,9 @@ public interface MesadaRepository extends JpaRepository<Mesada, Long> {
                                          @Param("ano") int ano,
                                          @Param("mes") int mes);
 
+
+    @Query("SELECT m FROM Mesada m WHERE m.usuario.usuarioId = :usuarioId AND m.mesadaRecebida = false")
+    Optional<Mesada> findByMesadaPendenteUsuarioId(@Param("usuarioId") Long usuarioId);
+
+
 }

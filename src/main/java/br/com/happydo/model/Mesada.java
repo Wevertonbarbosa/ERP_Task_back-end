@@ -44,7 +44,7 @@ public class Mesada {
     private Integer anoReferencia;
 
     @Column(name = "percentual_conclusao")
-    private Double percentualConclusao; // ex: 72.5 (%)
+    private Double percentualConclusao;
 
     @Column(name = "valor_proporcional")
     private Double valorProporcional;

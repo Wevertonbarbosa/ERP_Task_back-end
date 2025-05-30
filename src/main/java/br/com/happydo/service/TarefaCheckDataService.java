@@ -3,10 +3,7 @@ package br.com.happydo.service;
 import br.com.happydo.dto.TarefaCheckDataDTO;
 import br.com.happydo.dto.TarefaSinalizadaConcluidaDTO;
 import br.com.happydo.dto.UsuarioExibitionDTO;
-import br.com.happydo.exception.AcessoNegadoException;
-import br.com.happydo.exception.TarefaJaSinalizada;
-import br.com.happydo.exception.TarefaNaoEncontradaException;
-import br.com.happydo.exception.UsuarioNaoEncontradoException;
+import br.com.happydo.exception.*;
 import br.com.happydo.model.*;
 import br.com.happydo.repository.MesadaRepository;
 import br.com.happydo.repository.TarefaCheckDataRepository;
@@ -200,30 +197,34 @@ public class TarefaCheckDataService {
             mesadaService.adicionarPontosConcluidosNaMesada(usuarioResponsavel.getUsuarioId(), pontuacaoTarefa);
 
 
-            LocalDate hoje = LocalDate.now();
-            int ano = hoje.getYear();
-            int mes = hoje.getMonthValue();
+            Optional<Mesada> mesadaOptional = mesadaRepository.findByMesadaPendenteUsuarioId(usuarioResponsavel.getUsuarioId());
 
-            Mesada mesada = mesadaRepository.findByUsuarioAndMes(usuarioResponsavel.getUsuarioId(), ano, mes)
-                    .orElseThrow(() -> new IllegalStateException("Mesada não encontrada para o usuário neste período."));
-
-            // Atualiza percentual e valor proporcional
-            mesadaService.atualizarDesempenhoMesada(mesada, usuarioResponsavel.getValorMesadaMensal());
+            if (mesadaOptional.isPresent()) {
+                Mesada mesadaExistente = mesadaOptional.get();
 
 
-            if (mesada.getPontosConcluidos() >= mesada.getTotalPontosPeriodo()) {
-                mesada.setMesadaRecebida(true);
-                usuarioResponsavel.setSaldoTotal(mesada.getValor());
-                usuarioResponsavel.setPontuacaoAcumulada(0);
-                usuarioResponsavel.setValorMesadaMensal(0.0);
+                mesadaService.atualizarDesempenhoMesada(mesadaExistente, usuarioResponsavel.getValorMesadaMensal());
+
+                if (mesadaExistente.getPontosConcluidos() >= mesadaExistente.getTotalPontosPeriodo()) {
+                    mesadaExistente.setMesadaRecebida(true);
+                    Double valorTotalAcumulado = usuarioResponsavel.getSaldoTotal() + mesadaExistente.getValor();
+                    usuarioResponsavel.setSaldoTotal(valorTotalAcumulado);
+                    usuarioResponsavel.setPontuacaoAcumulada(0);
+                    usuarioResponsavel.setValorMesadaMensal(0.0);
+
+                    usuarioResponsavel.setMesadaAtiva(false);
+                }
+
+
+                usuarioRepository.save(usuarioResponsavel);
+                mesadaRepository.save(mesadaExistente);
+            } else {
+                throw new MesadaNaoEncontradaException("Mesada não foi encontrada para usuário");
             }
 
 
-            usuarioRepository.save(usuarioResponsavel);
-            mesadaRepository.save(mesada);
-
         } else {
-            // Rejeição da tarefa
+
             tarefaCheckData.setSinalizadaUsuario(false);
             tarefaCheckData.setConcluida(false);
             tarefaCheckData.getTarefa().setStatus(StatusTarefa.ANDAMENTO);

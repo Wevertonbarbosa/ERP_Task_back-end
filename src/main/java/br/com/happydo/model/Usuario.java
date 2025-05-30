@@ -46,6 +46,12 @@ public class Usuario {
     @Column(name = "valor_mesada_mensal")
     private Double valorMesadaMensal = 0.0;
 
+    @Column(name = "mesada_ativa")
+    private Boolean mesadaAtiva;
+
+    @Column(name = "primeiro_acesso")
+    private Boolean primeiroAcesso;
+
     @OneToMany(mappedBy = "criador")
     private List<Tarefa> tarefasCriadas;
 

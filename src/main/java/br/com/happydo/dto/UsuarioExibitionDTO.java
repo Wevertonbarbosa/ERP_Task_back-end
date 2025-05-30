@@ -12,7 +12,9 @@ public record UsuarioExibitionDTO(
         Integer tarefasPendentes,
         Double saldoTotal,
         Integer pontuacaoAcumulada,
-        Double valorMesadaMensal
+        Double valorMesadaMensal,
+        Boolean mesadaAtiva,
+        Boolean primeiroAcesso
 
 ) {
     public UsuarioExibitionDTO(Usuario usuario) {
@@ -25,7 +27,9 @@ public record UsuarioExibitionDTO(
                 usuario.getTarefasPendentes(),
                 usuario.getSaldoTotal(),
                 usuario.getPontuacaoAcumulada(),
-                usuario.getValorMesadaMensal()
+                usuario.getValorMesadaMensal(),
+                usuario.getMesadaAtiva(),
+                usuario.getPrimeiroAcesso()
         );
     }
 

@@ -55,14 +55,10 @@ public class TarefaService {
 
         if (responsavel.getRole().equals(UsuarioRole.USER)) {
 
-            LocalDate hoje = LocalDate.now();
-            int anoAtual = hoje.getYear();
-            int mesAtual = hoje.getMonthValue();
-
-            Optional<Mesada> mesadaOptional = mesadaRepository.findByUsuarioAndMes(responsavel.getUsuarioId(), anoAtual, mesAtual);
-            if (mesadaOptional.isEmpty()) {
-                throw new SemMesadaCadastradaException("Mentorado precisa de uma mesada cadastrada para receber tarefas.");
+            if (responsavel.getMesadaAtiva().equals(false)) {
+                throw new SemMesadaCadastradaException("Mentorado precisa de uma mesada cadastrada e ativa dentro do período, para receber tarefas");
             }
+
 
             if (tarefaDTO.pontuacao() == null || tarefaDTO.pontuacao() <= 0) {
                 throw new PontuacaoInvalidaException("A pontuação da tarefa deve ser maior que zero para mentorado.");
@@ -70,7 +66,7 @@ public class TarefaService {
 
             tarefa.setPontuacao(tarefaDTO.pontuacao());
         } else {
-            tarefa.setPontuacao(null); // ou tarefa.setPontuacao(0);
+            tarefa.setPontuacao(null);
         }
 
 
@@ -145,7 +141,6 @@ public class TarefaService {
             BeanUtils.copyProperties(tarefaDTO, tarefa);
             tarefa.setId(tarefaId);
 
-            // Regras da pontuação conforme perfil do responsável
             Usuario responsavel = tarefa.getResponsavel();
             if (responsavel != null && responsavel.getRole().equals(UsuarioRole.USER)) {
                 if (tarefaDTO.pontuacao() == null || tarefaDTO.pontuacao() <= 0) {
@@ -204,11 +199,7 @@ public class TarefaService {
             int novaPontuacao = usuarioResponsavel.getPontuacaoAcumulada() - pontuacaoTarefa;
             usuarioResponsavel.setPontuacaoAcumulada(Math.max(novaPontuacao, 0));
 
-            LocalDate hoje = LocalDate.now();
-            int ano = hoje.getYear();
-            int mes = hoje.getMonthValue();
-
-            Optional<Mesada> mesadaOptional = mesadaRepository.findByUsuarioAndMes(usuarioResponsavel.getUsuarioId(), ano, mes);
+            Optional<Mesada> mesadaOptional = mesadaRepository.findByMesadaPendenteUsuarioId(usuarioResponsavel.getUsuarioId());
 
             if (mesadaOptional.isPresent()) {
                 Mesada mesadaExistente = mesadaOptional.get();
@@ -223,7 +214,6 @@ public class TarefaService {
                 );
 
                 mesadaRepository.save(mesadaExistente);
-
             }
         }
 

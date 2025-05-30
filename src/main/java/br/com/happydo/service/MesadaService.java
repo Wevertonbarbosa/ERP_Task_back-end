@@ -36,10 +36,8 @@ public class MesadaService {
         int ano = hoje.getYear();
         int mes = hoje.getMonthValue();
 
-        // Verifica se já existe uma mesada para o mesmo mês e ano
-        Optional<Mesada> mesadaExistente = mesadaRepository.findByUsuarioAndMes(usuarioId, ano, mes);
 
-        if (mesadaExistente.isEmpty()) {
+        if (usuario.getMesadaAtiva().equals(false)) {
             Mesada mesada = new Mesada();
             mesada.setUsuario(usuario);
             mesada.setAnoReferencia(ano);
@@ -51,7 +49,7 @@ public class MesadaService {
             mesada.setValorProporcional(0.0);
             mesada.setMesadaRecebida(false);
 
-            // Usa o valor da mesada vindo do DTO (definido pelo mentor)
+
             Double valorDefinidoPeloMentor = mesadaDTO.valor() != null ? mesadaDTO.valor() : 0.0;
 
             Double valorCalculado = calcularValorProporcional(
@@ -63,9 +61,8 @@ public class MesadaService {
             mesada.setValor(mesadaDTO.valor());
 
 
-            usuario.setSaldoTotal(valorCalculado);
-
             usuario.setValorMesadaMensal(mesada.getValor());
+            usuario.setMesadaAtiva(true);
 
             Mesada mesadaSalva = mesadaRepository.save(mesada);
             usuarioRepository.save(usuario);
@@ -88,11 +85,7 @@ public class MesadaService {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
 
-        LocalDate hoje = LocalDate.now();
-        int ano = hoje.getYear();
-        int mes = hoje.getMonthValue();
-
-        Optional<Mesada> mesadaOptional = mesadaRepository.findByUsuarioAndMes(usuarioId, ano, mes);
+        Optional<Mesada> mesadaOptional = mesadaRepository.findByMesadaPendenteUsuarioId(usuarioId);
 
         if (mesadaOptional.isPresent()) {
             Mesada mesadaExistente = mesadaOptional.get();
@@ -188,6 +181,7 @@ public class MesadaService {
 
 
         usuario.setSaldoTotal(usuario.getSaldoTotal() + novoValor);
+        usuario.setMesadaAtiva(usuario.getMesadaAtiva());
 
         usuarioRepository.save(usuario);
         mesadaRepository.save(mesada);
@@ -200,21 +194,19 @@ public class MesadaService {
 
         Usuario usuario = mesada.getUsuario();
 
-//       -------------------- AJUSTAR A FUNCAO ABAIXO -------------------------------
+        Optional<Mesada> mesadaOptional = mesadaRepository.findByMesadaPendenteUsuarioId(usuario.getUsuarioId());
+        if (mesadaOptional.isPresent()) {
 
 
-//        if (mesada.getMesadaRecebida().equals(false)) {
-            double novoSaldo = usuario.getSaldoTotal() - mesada.getValor();
-            usuario.setSaldoTotal(Math.max(0.0, novoSaldo));
+            usuario.setValorMesadaMensal(0.0);
+            usuario.setMesadaAtiva(false);
 
-            usuario.setValorMesadaMensal(Math.max(0.0, novoSaldo));
-
+            mesadaRepository.deleteById(mesadaId);
+            usuarioRepository.save(usuario);
+        } else {
             usuarioRepository.save(usuario);
             mesadaRepository.deleteById(mesadaId);
-
-//        } else {
-//            throw new MesadaJaAddNoMes("A mesada já foi recebida e não pode mais ser excluída.");
-//        }
+        }
 
 
     }

@@ -35,6 +35,7 @@ public class RedefinirSenhaService {
         String senhaCriptografada = new BCryptPasswordEncoder().encode(novaSenha);
 
         usuario.setSenha(senhaCriptografada);
+        usuario.setPrimeiroAcesso(false);
         usuarioRepository.save(usuario);
     }
 
