@@ -193,33 +193,38 @@ public class TarefaService {
             usuarioResponsavel.setTarefasPendentes(usuarioResponsavel.getTarefasPendentes() - 1);
         } else {
             usuarioResponsavel.setTarefasConcluidas(usuarioResponsavel.getTarefasConcluidas() - 1);
-            Integer pontuacaoTarefa = tarefa.getPontuacao();
 
+            // ⚠️ Só calcula pontuação se o usuário for MENTORADO
+            if (usuarioResponsavel.getRole().equals(UsuarioRole.USER)) {
+                Integer pontuacaoTarefa = tarefa.getPontuacao();
+                int pontuacaoAtual = usuarioResponsavel.getPontuacaoAcumulada() != null
+                        ? usuarioResponsavel.getPontuacaoAcumulada()
+                        : 0;
 
-            int novaPontuacao = usuarioResponsavel.getPontuacaoAcumulada() - pontuacaoTarefa;
-            usuarioResponsavel.setPontuacaoAcumulada(Math.max(novaPontuacao, 0));
+                int novaPontuacao = pontuacaoAtual - pontuacaoTarefa;
+                usuarioResponsavel.setPontuacaoAcumulada(Math.max(novaPontuacao, 0));
 
-            Optional<Mesada> mesadaOptional = mesadaRepository.findByMesadaPendenteUsuarioId(usuarioResponsavel.getUsuarioId());
+                Optional<Mesada> mesadaOptional = mesadaRepository.findByMesadaPendenteUsuarioId(usuarioResponsavel.getUsuarioId());
 
-            if (mesadaOptional.isPresent()) {
-                Mesada mesadaExistente = mesadaOptional.get();
+                if (mesadaOptional.isPresent()) {
+                    Mesada mesadaExistente = mesadaOptional.get();
 
-                int pontosAtuais = mesadaExistente.getPontosConcluidos() != null ? mesadaExistente.getPontosConcluidos() : 0;
-                int novosPontos = pontosAtuais - pontuacaoTarefa;
-                mesadaExistente.setPontosConcluidos(Math.max(novosPontos, 0));
+                    int pontosAtuais = mesadaExistente.getPontosConcluidos() != null ? mesadaExistente.getPontosConcluidos() : 0;
+                    int novosPontos = pontosAtuais - pontuacaoTarefa;
+                    mesadaExistente.setPontosConcluidos(Math.max(novosPontos, 0));
 
-                mesadaService.atualizarDesempenhoMesada(
-                        mesadaExistente,
-                        usuarioResponsavel.getValorMesadaMensal()
-                );
+                    mesadaService.atualizarDesempenhoMesada(
+                            mesadaExistente,
+                            usuarioResponsavel.getValorMesadaMensal()
+                    );
 
-                mesadaRepository.save(mesadaExistente);
+                    mesadaRepository.save(mesadaExistente);
+                }
             }
         }
 
+
         usuarioRepository.save(usuarioResponsavel);
-
-
         tarefaRepository.delete(tarefa);
     }
 
