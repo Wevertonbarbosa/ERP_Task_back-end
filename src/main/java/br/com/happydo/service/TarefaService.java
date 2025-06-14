@@ -123,6 +123,15 @@ public class TarefaService {
 
     }
 
+    public List<TarefaDTO> listarTarefasPorStatus(Long usuarioId, StatusTarefa status) {
+        Usuario usuarioLogado = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado."));
+
+        return tarefaRepository.findByResponsavel_UsuarioIdAndStatus(usuarioId, status).stream()
+                .map(TarefaDTO::new)
+                .toList();
+    }
+
 
     public TarefaDTO atualizarTarefa(Long adminId, Long tarefaId, TarefaDTO tarefaDTO) {
         Usuario admin = usuarioRepository.findById(adminId)

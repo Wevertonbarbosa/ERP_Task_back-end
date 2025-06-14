@@ -1,5 +1,6 @@
 package br.com.happydo.repository;
 
+import br.com.happydo.model.StatusTarefa;
 import br.com.happydo.model.Tarefa;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -13,5 +14,6 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
 
     List<Tarefa> findByCriador_UsuarioIdAndResponsavel_UsuarioIdNot(Long criadorUsuarioId, Long responsavelUsuarioId);
 
+    List<Tarefa> findByResponsavel_UsuarioIdAndStatus(Long usuarioId, StatusTarefa status);
 
 }

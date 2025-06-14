@@ -1,6 +1,7 @@
 package br.com.happydo.controller;
 
 import br.com.happydo.dto.TarefaDTO;
+import br.com.happydo.model.StatusTarefa;
 import br.com.happydo.service.TarefaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,18 @@ public class TarefaController {
     @GetMapping("mentorado/{usuarioId}")
     public ResponseEntity<List<TarefaDTO>> listarTarefasMentorados(@PathVariable Long usuarioId) {
         List<TarefaDTO> tarefas = tarefaService.listarTarefasMentorados(usuarioId);
+        return ResponseEntity.ok(tarefas);
+    }
+
+    @GetMapping("/{usuarioId}/andamento")
+    public ResponseEntity<List<TarefaDTO>> listarTarefasAndamento(@PathVariable Long usuarioId) {
+        List<TarefaDTO> tarefas = tarefaService.listarTarefasPorStatus(usuarioId, StatusTarefa.ANDAMENTO);
+        return ResponseEntity.ok(tarefas);
+    }
+
+    @GetMapping("/{usuarioId}/concluido")
+    public ResponseEntity<List<TarefaDTO>> listarTarefasConcluidas(@PathVariable Long usuarioId) {
+        List<TarefaDTO> tarefas = tarefaService.listarTarefasPorStatus(usuarioId, StatusTarefa.CONCLUIDO);
         return ResponseEntity.ok(tarefas);
     }
 
